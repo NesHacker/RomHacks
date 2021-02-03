@@ -1,5 +1,5 @@
 ; MultiAddInventory.s
-; Routines and notes for handling adding multiple items based on selected quantity.
+; Routines and notes for handling adding multiple items when buying in shops.
 
 ;
 ; JSR Replacement @ $A4BF (ROM: $03A4CF)

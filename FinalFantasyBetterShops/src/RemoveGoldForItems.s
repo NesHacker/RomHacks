@@ -1,6 +1,8 @@
 ; RemoveGoldForItems.s
 ; Hacks to remove the correct amount of gold for multiple items.
 
+; TODO: This needs to be updated for 3 byte subtractions
+
 ; Every time the quantity to buy changes we recalculate the cost and store it
 ; in the zero page memory at $02-$03. So all we need to do to correctly remove
 ; the gold is replace the subtraction instructions to reference the zero page

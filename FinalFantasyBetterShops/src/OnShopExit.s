@@ -1,31 +1,33 @@
 ; OnShopExit.s
-; Routines and notes for handling cleanup of the zero page on shop exit.
+; Routines and notes for handling cleanup when exiting a shop.
 
 ;
-; Routine Entry Hook @ 0E:A486 (03A496)
-; This replaces the original game code and jumps into our hacked routine.
+; Entry Hook (0E:A484 - 0E:A489, 6 bytes)
 ;
-; Original Code:
-; 0E:A486: A5 62     LDA $62    // This will be non-zero when exiting
-; 0E:A488: D0 E7     BNE $A471  // This address is an RTS instruction
+; We need to RTS from 0E:A484 if carry is set or $62 is not zero (aka the cursor
+; index == 1, visually on the "exit" option). We also need to execute the hack
+; method `cleanupZeroPage` prior to the RTS.
 ;
-jmp $BFEF         ; 4C EF BF
-nop               ; EA          // (Address: A489)
+; 1. Execute cleanupZeroPage
+; 2. Perform an RTS to return out of the shop routine
+;
+jmp onShopExit        ; 4C 69 84
 
 ;
-; On Shop Exit ZeroPage Cleanup
-; Injected: 0E:BFEF - 0E:BFFD (18 bytes)
+; onShopExit
+; Address: 0E:8469
+; Length: 14
 ;
-; This zero-fills the memory used to handle multi-buy functionality when the
-; player exits a store. No need to save X, it gets overwritten before use in
-; both logical paths after finishing the routine.
+; This routine is called to check if we are exiting the shop and, if so, call
+; the zeropage cleanup hack method in bank 06.
 ;
-bcs +7            ; B0 07
-ldx $62           ; A6 62
-bne +3            ; D0 03
-jmp $A489         ; 4C 89 A4    // Not exiting shop, jump to NOP
-ldx #0            ; A2 00
-stx $01           ; 86 01
-stx $02           ; 86 02
-stx $03           ; 86 03
-rts               ; 60          // Exiting Shop, fire an RTS
+onShopExit
+  bcs @exit (+7)      ; B0 07
+  lda $62             ; A5 62
+  bne @exit (+3)      ; D0 03
+  jmp $A489           ; 4C 89 A4    // Not exiting, continue on...
+@exit:
+  lda #5              ; A9 05
+  jsr callHack0E      ; 20 F5 82
+  rts                 ; 60
+

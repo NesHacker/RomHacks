@@ -1,10 +1,15 @@
 # Final Fantasy ROM Notes
 
-; TODO: Need to hook this in on shop leave to clean up the zero page (just in case)
-A9 00 		; LDA #$00
-85 01			; STA $01
-
-; TODO: Need to skip
+## ZeroPage Temporary Memory
+Address | Purpose
+--------|-----------------------------------------------------------------------
+$00     | Return Bank
+$01     | Hack Routine Index
+$02     | Hack Routine Address Lo-byte
+$03     | Hack Routine Address Hi-byte
+$04     | Item Quantity
+$05-$07 | Gold Total (Item Price * Item Quantity)
+$08-$09 | Item Price Memo (for total calculation)
 
 ## Hack Overview
 - [x] Determine Board, Mapper, and ROM Information
@@ -22,27 +27,52 @@ A9 00 		; LDA #$00
 ## The Hack Plan
 1. Use $00 - $09 as temporary state, it's not touched in shops
 2. [x] Routine: Cleanup state on shop exit (zero-fill)
-3. [ ] Routine: Initialize Price & Quantity
+3. [x] Routine: Initialize Price & Quantity
 4. [ ] Routine: Inc/Dec Qty using left and right d-pad inputs
 5. [ ] Routine: Display selected quantity
-6. [-] Routine: Multi-add items on buy based on chosen quantity
+6. [x] Routine: Multi-add items on buy based on chosen quantity
 
 ## Subroutine Injection Locations
-Below is a list of locations I've found for injecting routines along with the
-number of bytes supported by each spo
 
+### Bank $0E
+Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
+------|------|---------|---------|----------------|----------------------
+[ ]   | $0E  | $AD19   | $03AD29 | 22             |
+[ ]   | $0E  | $84E3   | $0384F3 | 28             |
+[x]   | $0E  | $8469   | $038479 | 22             | onShopExit
+[x]   | $0E  | $82F5   | $038305 | 10             | callHack0E
+
+### Bank $0F
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
 [ ]   | $0F  | $FFCD   | $03FFDD | 17             |
 [ ]   | $0F  | $FFB9   | $03FFC9 | 7              |
 [ ]   | $0F  | $FFA4   | $03FFB4 | 4              |
-[ ]   | $0F  | $FF81   | $03FF91 | 15             |
+[x]   | $0F  | $FF82   | $03FF91 | 13 (8)         | swapAndJumpToHack
 [ ]   | $0F  | $FF3C   | $03FF4C | 4              |
-[ ]   | $0F  | $FDF2   | $03FE02 | 13             |
-[x]   | $0E  | $AD19   | $03AD29 | 22 (18)        | OnShopExit
-[x]   | $0E  | $84E3   | $0384F3 | 28 (12/13)     | Multi Add / Initialize Routines
-[ ]   | $0E  | $8469   | $038479 | 22             |
-[ ]   | $0E  | $82F5   | $038305 | 10             |
+[x]   | $0F  | $FDF2   | $03FE02 | 13 (13)        | callHack
+
+### The Great Void (Bank $06)
+
+The great void is a region at the end of bank 6 that is a massive sea of 0s that
+seems to be entirely unused. It is the only very large contiguous region to be
+found in the Final Fantasy ROM, as far as I can tell.
+
+* **Bank:** `$06`
+* **Start Address:** `$01ACB0` (CPU: `$ACA0`)
+* **Length (bytes):** `4960` (~4.84KB!!!)
+
+ CPU     | ROM     | Length (bytes)  | Label
+---------|---------|-----------------|------------------------------------------
+$ACA0    | $01ACB0 | 96              | hackMethodAddressTable
+$AD00    | $01AD10 | 32              | executeHack
+$AD20    | $01AD30 | 16              | cleanupZeroPage
+$AD30    | $01AD40 | 0               | FREE
+
+
+Curent Bank: 0F
+HOME Address: FEBB
+Bank Switch A: FE1A
 
 
 ## Hacking Notes

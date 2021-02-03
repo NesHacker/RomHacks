@@ -12,4 +12,7 @@ $AA98#Hook: Initialize Price / Quantity#
 $84EF#InitializePriceQuantity#
 $84E3#MultiAddInventory#
 $A489#Hook: OnShopExit Reentry#
-$AD19#OnShopExit#
+$AD00#executeHack (bank $06)#
+$82F5#callHack0E#
+$8469#onShopExit#
+$8472#@exit#
