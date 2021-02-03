@@ -22,14 +22,14 @@ A9 00 		; LDA #$00
 ## The Hack Plan
 1. Use $00 - $09 as temporary state, it's not touched in shops
 2. [x] Routine: Cleanup state on shop exit (zero-fill)
-3. [ ] Routine: Compute Gold Cost, Gold = Qty x Item Price
+3. [ ] Routine: Initialize Price & Quantity
 4. [ ] Routine: Inc/Dec Qty using left and right d-pad inputs
 5. [ ] Routine: Display selected quantity
-6. [x] Routine: Multi-add items on buy based on chosen quantity
+6. [-] Routine: Multi-add items on buy based on chosen quantity
 
 ## Subroutine Injection Locations
 Below is a list of locations I've found for injecting routines along with the
-number of bytes supported by each spot.
+number of bytes supported by each spo
 
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
@@ -39,10 +39,9 @@ Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 [ ]   | $0F  | $FF81   | $03FF91 | 15             |
 [ ]   | $0F  | $FF3C   | $03FF4C | 4              |
 [ ]   | $0F  | $FDF2   | $03FE02 | 13             |
-[x]   | $0E  | $BFEF   | $03BFFF | 15 (15)        | On Exit Routine
-[ ]   | $0E  | $AD19   | $03AD29 | 22             |
-[ ]   | $0E  | $84E3   | $0384F3 | 28             |
-[ ]   | $0E  | $8469   | $038479 | 22             | Looks like $FF padding
+[x]   | $0E  | $AD19   | $03AD29 | 22 (18)        | OnShopExit
+[x]   | $0E  | $84E3   | $0384F3 | 28 (12/13)     | Multi Add / Initialize Routines
+[ ]   | $0E  | $8469   | $038479 | 22             |
 [ ]   | $0E  | $82F5   | $038305 | 10             |
 
 
@@ -203,3 +202,5 @@ the lower prg-rom bank set to `$0E` (bank 14).
 - Bank `$0E` seems to be loaded when you're in a store
 - Looks like `$62` being set to 1 determines if we "leave" the shop on A press
 - `$62` gets set as a result of moving the cursor, but only on the first menu...
+- Also, exiting the shop by pressing B works slightly different, as $62 is not
+  set but the carry flag IS set (this explains the BCS @ A484).

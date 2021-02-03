@@ -1,10 +1,10 @@
-Item ID (Hex), Name
-16, Tent
-17, Cabin
-18, House
-19, Heal
-1A, Pure
-1B, Soft
+Item ID (Hex),Name,Price
+16, Tent, 75
+17, Cabin, 250
+18, House, 3000
+19, Heal, 60
+1A, Pure, 75
+1B, Soft, 800
 1C, Wooden Nunchaku
 1D, Small Knife
 1E, Wooden Staff

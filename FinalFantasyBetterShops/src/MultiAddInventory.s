@@ -66,6 +66,7 @@ pla               ; 68
 rts               ; 60
 
 ; Fast Multi-Add
+; Injected: 0E:84E3 - 0E:84EE (12 bytes)
 ;
 ; This is probably as good as it gets when it comes to size of the code and
 ; speed of execution. Instead of repeatedly performing increments we simply use
