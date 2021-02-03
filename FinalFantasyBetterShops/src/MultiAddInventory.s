@@ -8,62 +8,7 @@
 ; bytes and jump into our own subroutine to handle adding multiple items instead
 ; of just one.
 ;
-jsr $AD19         ; 20 19 AD
-
-; All of the routines below should be injected into the rom at $AD19 (ROM: $03AD29)
-
-;
-; Test: Double increment
-;
-; This was my first test just to ensure I got the code injectected and working
-; properly. It simply increments the count for the number of items of the type
-; being bough twice then returns.
-;
-inc $6020, x      ; FE 20 60
-inc $6020, x      ; FE 20 60
-rts               ; 60
-
-;
-; Test: Multi-add Based on Quantity State
-;
-; Assuming that the quantity being bought is stored at $01, this routine handles
-; a parameterized multi-add. It's pretty unsafe because we are using the Y
-; register and it is unknown if that register is currently holding important
-; state.
-;
-ldy $01           ; A4 01
-beq +7            ; F0 07
-inc $6020, x      ; FE 20 60
-dey               ; 88
-bne -4            ; D0 FA
-rts               ; 60
-
-;
-; Safe Multi-add
-;
-; An improvment over the previous routine. Here we add some safety to the code
-; by pushing the accumulator and the Y register to the stack prior to changing
-; their values. We also "zero-out" the state for the quantity at $01. Finally,
-; at the end, we pop the A and Y values off the stack and then return.
-;
-; This is a very safe, but also very long and slow way to do all this. The
-; "Absolute, X" addressing mode for the INC operation alone takes 6 cycles to
-; each time it is called (potentially 99 times, which is 594 cycles total, lol).
-;
-pha               ; 48
-tya               ; 98
-pha               ; 48
-ldy $01           ; A4 01
-beq +6            ; F0 06
-inc $6020, x      ; FE 20 60
-dey               ; 88
-bne -4            ; D0 FA
-lda #0            ; A9 00
-sta $01           ; 85 01
-pla               ; 68
-tay               ; A8
-pla               ; 68
-rts               ; 60
+jsr $84E3         ; 20 E3 84
 
 ; Fast Multi-Add
 ; Injected: 0E:84E3 - 0E:84EE (12 bytes)
