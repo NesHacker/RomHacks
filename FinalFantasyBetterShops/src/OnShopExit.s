@@ -1,4 +1,4 @@
-; on-exit.s
+; OnShopExit.s
 ; Routines and notes for handling cleanup of the zero page on shop exit.
 
 ;

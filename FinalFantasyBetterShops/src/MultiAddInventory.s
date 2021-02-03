@@ -1,4 +1,4 @@
-; multi-add.s
+; MultiAddInventory.s
 ; Routines and notes for handling adding multiple items based on selected quantity.
 
 ;
