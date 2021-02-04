@@ -4,6 +4,12 @@
 This is a "quality of life" hack to modify the game to make it easier to buy
 multiple consumable items (e.g. HEAL, PURE, etc.) at once when shopping.
 
+After quite a bit of exploration and experimentation I found a large empty
+region in Bank `$06` to put most of the hack code. By isolating reactions to
+events (e.g. choosing an item, buying an item, leaving a shop, etc.) and then
+swapping to bank `$06` to execute major code changes, we reduce the chance of
+breaking the core game by accidentally overwritting data in the main ROM.
+
 ### Board & ROM
 ![Image of Final Fantasy Board](./Board.png)
 
@@ -27,21 +33,13 @@ $04     | Item Quantity
 $05-$07 | Gold Total (Item Price * Item Quantity)
 $08-$09 | Item Price Memo (for total calculation)
 
-## The Hack Overview
-1. Use $00 - $09 as temporary state, it's not touched in shops
-2. [x] Routine: Cleanup state on shop exit (zero-fill)
-3. [x] Routine: Initialize Price & Quantity
-4. [ ] Routine: Inc/Dec Qty using left and right d-pad inputs
-5. [ ] Routine: Display selected quantity
-6. [x] Routine: Multi-add items on buy based on chosen quantity
-
 ## Code Injection / Hook Locations
 
 ### Bank $0E (Shop Logic)
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
 [ ]   | $0E  | $AD19   | $03AD29 | 22             |
-[ ]   | $0E  | $84E3   | $0384F3 | 28             |
+[x]   | $0E  | $84E3   | $0384F3 | 28             |
 [x]   | $0E  | $8469   | $038479 | 22             | onShopExit
 [x]   | $0E  | $82F5   | $038305 | 10             | callHack0E
 
@@ -81,14 +79,14 @@ $ACA0    | $01ACB0 | 96    | hackMethodAddressTable
 $AD00    | $01AD10 | 32    | executeHack
 $AD20    | $01AD30 | 16    | cleanupZeroPage
 $AD30    | $01AD40 | 32    | initializePriceQuantity
-$????    | $?????? | ??    | changeQuantity
+$AD50    | $01AD60 | ??    | changeQuantity
 $????    | $?????? | ??    | buyItems
 
 #### Free Space
 
  CPU     | ROM     | Bytes | Label / Notes
 ---------|---------|-------|----------------------------------------------------
-$AD40    | $01AD60 | --    | HEAD
+$AD50    | $01AD60 | --    | HEAD
 $BFFF    | $01C00F | --    | TAIL
 
 ## Notes
@@ -261,3 +259,22 @@ the lower prg-rom bank set to `$0E` (bank 14).
 - `$62` gets set as a result of moving the cursor, but only on the first menu...
 - Also, exiting the shop by pressing B works slightly different, as $62 is not
   set but the carry flag IS set (this explains the BCS @ A484).
+
+# Item Shop Menu State
+Okay, so after doing some experimentation I think I found a variable that is
+correlated to which menu you are on when in an item shop: `$54`:
+
+Value | Shop State          | Menu Options
+------|-------------------------------------------------------------------------
+CB    | Shop Action Menu    | Buy / Exit
+26    | Item Selection Menu | Items based on values in $0300 - $0304
+C9    | Confirm Buy Menu    | Yes / No
+
+In order to detemine if we should increment or decrement the quantity the logic
+goes as follows: `$54 == #$C9 && ($20 == #1 || $20 == #2)`. This will only be
+`true` if the player is in the "Confirm Buy Menu" AND <- OR -> has been pressed.
+
+As far as a hook is concerned for handling the execution of the inc/dec for the
+quantity, it seems that `$0E:A761` is a pretty good spot to start looking as it
+is executed directly after we've executed the common input handling code in the
+`$0F` bank and prior to handling any other logic for the shop.

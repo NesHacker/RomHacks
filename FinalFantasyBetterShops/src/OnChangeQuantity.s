@@ -1,16 +1,43 @@
 ; OnChangeQuantity.s
 ; Routines for incrementing and decrementing quantity in the shop buy menu.
 
-; $01 - Quantity
 
-; $02 - Total Price Byte 0 (lo)
-; $03 - Total Price Byte 1
-; $04 - Total Price Byte 2 (hi)
+; I think we need to jump into a mini routine here...
+; Note, A is immediately overwritten after this jump
 
-; $05 - Item Price TMP (lo)
-; $06 - Item Price TMP (hi)
+;
+; Entry Hook (0E:A774)
+;
+; The original JMP instruction is only executed when a button on the controller
+; has been pressed that doesn't correspond to an action in a shop menu (i.e
+; the player pressed a button besides up, down, a, or b).
+; Instead of jumping out to continue with the routine we jump into a small
+; method that calls out to the `changeQuantity` hack method, which handles the
+; rest of the logic and checks (e.g. if we are on the correct menu, can you
+; affort the quantity, updating the graphics, etc.).
+;
+; Original Code:
+; 0E:A774: 4C 9D AD  JMP $AD9D
+;
+jmp $84E3           ; 4C E3 84
 
-; $030E - $030F - Item Price
+;
+; onQuantityChange
+; Address: 0E:84E3
+; Length: 8
+;
+; Calls out to the change quantity hack method to handle changes if applicable.
+;
+lda #2              ; A9 02       // `changeQuantity` is hack index 2
+jsr callHack0E      ; 20 F5 82
+jmp $AD9D           ; 4C 9D AD
+
+; ------------------------------------------------------------------------------
+
+; lda $20             ; A5 20
+; and %00000011       ; 29 03
+; beq +5              ; F0 05
+
 
 ; Routine: Update total from quantity
 ; Total = Quantity * Item Price

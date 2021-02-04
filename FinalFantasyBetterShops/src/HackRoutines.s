@@ -61,8 +61,8 @@ hackMethodAddressTable:
   AD
   30                ; Index 1: initializePriceQuantity
   AD
-  YY                ; Index 2: changeQuantity
-  YY
+  50                ; Index 2: changeQuantity
+  AD
   XX                ; Index 3: buyItems
   XX
 
@@ -123,13 +123,48 @@ initializePriceQuantity:
 
 ;
 ; changeQuantity
-; Address:  0D:????
+; Address:  0D:AD50
 ; Length:   ?
 ;
-; TODO: Implement me.
+; Handles logic for incrementing and decrementing the selected item quantity
+; based on user input. This function also handles bounds checking and only
+; applies changes if in the correct shop menu. Further, this method will only
+; apply changes if the currently selected item is a consumable.
 ;
 changeQuantity:
-  nop
+; // Are we in correct shop menu?
+  lda $54           ; A5 54
+  cmp #$C9          ; C9 C9
+  beq +1            ; F0 01
+@return:
+  rts               ; 60
+; // Are we attempting to buy a consumable?
+  lda $030C         ; AD 0C 03
+  cmp #$1C          ; C9 1C       // Consumables are ids 16 through 1B
+  bcs @return (-8)  ; B0 F8
+; // Is the player presssing left or right?
+  lda $20           ; A5 20
+  and #%00000011    ; 29 03
+  beq @return (-14) ; F0 F2
+; // Are we pressing Right OR Left?
+  cmp #%00000001    ; C9 01
+  bne @decrement    ; D0 0A
+@increment:
+  lda $04           ; A5 04
+  cmp #99           ; C9 63
+  bcs @return (-24) ; B0 E8
+  inc $04           ; E6 04
+  bcc @apply (+8)   ; 90 08
+@decrement:
+  lda $04           ; A5 04
+  cmp #1            ; C9 01
+  beq @return (-34) ; F0 DE
+  dec $04           ; C6 04
+@apply:
+; TODO: Calculate new total...
+; TODO: Update gold value in display...
+; TODO: Update quantity value in display...
+  rts               ; 60
 
 ;
 ; buyItems
@@ -139,4 +174,4 @@ changeQuantity:
 ; TODO: Implement me.
 ;
 buyItems:
-  nop
+  rts

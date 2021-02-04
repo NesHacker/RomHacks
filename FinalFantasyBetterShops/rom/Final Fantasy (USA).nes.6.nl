@@ -2,3 +2,8 @@ $ACA0#hackMethodAddressTable#
 $AD00#executeHack#
 $AD20#cleanupZeroPage#
 $AD30#initializePriceQuantity#
+$AD50#changeQuantity#
+$AD56#@return#
+$AD68#@increment#
+$AD7A#@apply#
+$AD72#@decrement#
