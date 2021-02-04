@@ -1,5 +1,52 @@
-; MultiAddInventory.s
+; OnBuy.s
 ; Routines and notes for handling adding multiple items when buying in shops.
+
+
+; 0E:A4BF: FE 20 60  INC $6020,X @ $6080 = #$04
+; 0E:A4C2: 20 CD A4  JSR $A4CD Remove Gold for Item
+; 0E:A4C5: A9 13     LDA #$13
+; 0E:A4C7: 20 5B AA  JSR $AA5B
+; 0E:A4CA: 4C 81 A4  JMP $A481
+; Remove Gold for Item:
+; 0E:A4CD: AD 1C 60  LDA $601C = #$FF
+; 0E:A4D0: 38        SEC
+; 0E:A4D1: E5 02     SBC $02 = #$00
+; 0E:A4D3: EA        NOP
+; 0E:A4D4: 8D 1C 60  STA $601C = #$FF
+; 0E:A4D7: AD 1D 60  LDA $601D = #$FF
+; 0E:A4DA: E5 03     SBC $03 = #$00
+; 0E:A4DC: EA        NOP
+; 0E:A4DD: 8D 1D 60  STA $601D = #$FF
+; 0E:A4E0: AD 1E 60  LDA $601E = #$0F
+; 0E:A4E3: E9 00     SBC #$00
+; 0E:A4E5: 8D 1E 60  STA $601E = #$0F
+; OnInventoryAdd (END):
+; 0E:A4E8: 4C EF A7  JMP $A7EF
+
+
+
+
+
+
+; RemoveGoldForItems.s
+; Hacks to remove the correct amount of gold for multiple items.
+
+; TODO: This needs to be updated for 3 byte subtractions
+
+; Every time the quantity to buy changes we recalculate the cost and store it
+; in the zero page memory at $02-$03. So all we need to do to correctly remove
+; the gold is replace the subtraction instructions to reference the zero page
+; as opposed to the main memory where the item price is stored.
+
+; [REPLACE] 0E:A4D1: ED 0E 03  SBC $030E
+sbc $02         ; E5 02
+nop             ; EA
+
+; [REPLACE] 0E:A4DA: ED 0F 03  SBC $030F
+sbc $03         ; E5 03
+nop             ; EA
+
+
 
 ;
 ; JSR Replacement @ $A4BF (ROM: $03A4CF)

@@ -1,6 +1,22 @@
 # Final Fantasy ROM Notes
 
-## ZeroPage Temporary Memory
+## Overview
+This is a "quality of life" hack to modify the game to make it easier to buy
+multiple consumable items (e.g. HEAL, PURE, etc.) at once when shopping.
+
+### Board & ROM
+![Image of Final Fantasy Board](./Board.png)
+
+- **Board:** [SxROM]() (`SNROM`, `NES-SNROM-05`)
+- **Mapper:** [MMC1]() (`MMC1B2`)
+- **CPU $8000-$BFFF:** 16 KB PRG ROM bank, **SWITCHABLE**
+- **CPU $C000-$FFFF:** 16 KB PRG ROM bank, **FIXED TO LAST BANK** (`$0F`)
+
+### ZeroPage Temporary Memory
+The zero page addresses from $00 to $09 do not appear to be used when in the
+shopping code. To implement the new functionality, I use them as temporary state
+while shopping.
+
 Address | Purpose
 --------|-----------------------------------------------------------------------
 $00     | Return Bank
@@ -11,20 +27,7 @@ $04     | Item Quantity
 $05-$07 | Gold Total (Item Price * Item Quantity)
 $08-$09 | Item Price Memo (for total calculation)
 
-## Hack Overview
-- [x] Determine Board, Mapper, and ROM Information
-  - Messed with the mapper a bit, but I just opened the cart and took a photo
-  - Board: `NES-SNROM-05` (SxROM, SNROM)
-  - Mapper: `MMC1B2`
-  - CPU $8000-$BFFF: 16 KB PRG ROM bank, **SWITCHABLE**
-  - CPU $C000-$FFFF: 16 KB PRG ROM bank, **FIXED TO LAST BANK** (`$0F`)
-- [x] Determine memory locations for gold and inventory item quantities.
-  - Both of these are in PRG-RAM
-  - `$601C-$601D` - Party Gold
-  - `$6036-$603B` - Consumable inventory item quantities
-
-
-## The Hack Plan
+## The Hack Overview
 1. Use $00 - $09 as temporary state, it's not touched in shops
 2. [x] Routine: Cleanup state on shop exit (zero-fill)
 3. [x] Routine: Initialize Price & Quantity
@@ -32,9 +35,9 @@ $08-$09 | Item Price Memo (for total calculation)
 5. [ ] Routine: Display selected quantity
 6. [x] Routine: Multi-add items on buy based on chosen quantity
 
-## Subroutine Injection Locations
+## Code Injection / Hook Locations
 
-### Bank $0E
+### Bank $0E (Shop Logic)
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
 [ ]   | $0E  | $AD19   | $03AD29 | 22             |
@@ -42,7 +45,7 @@ Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 [x]   | $0E  | $8469   | $038479 | 22             | onShopExit
 [x]   | $0E  | $82F5   | $038305 | 10             | callHack0E
 
-### Bank $0F
+### Bank $0F (Fixed Bank)
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
 [ ]   | $0F  | $FFCD   | $03FFDD | 17             |
@@ -54,28 +57,41 @@ Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 
 ### The Great Void (Bank $06)
 
-The great void is a region at the end of bank 6 that is a massive sea of 0s that
-seems to be entirely unused. It is the only very large contiguous region to be
-found in the Final Fantasy ROM, as far as I can tell.
-
 * **Bank:** `$06`
-* **Start Address:** `$01ACB0` (CPU: `$ACA0`)
-* **Length (bytes):** `4960` (~4.84KB!!!)
+* **Start Address:**  `$01ACB0` (CPU: `$ACA0`)
+* **End Address:**    `$01C00F` (CPU: `$BFFF`)
+* **Length (bytes):** `4960`    (~4.84KB!!!)
 
- CPU     | ROM     | Length (bytes)  | Label
----------|---------|-----------------|------------------------------------------
-$ACA0    | $01ACB0 | 96              | hackMethodAddressTable
-$AD00    | $01AD10 | 32              | executeHack
-$AD20    | $01AD30 | 16              | cleanupZeroPage
-$AD30    | $01AD40 | 0               | FREE
+The "great void" is a region at the end of bank 6 that is a massive sea of 0s
+that seems to be entirely unused. It is the only very large contiguous region to
+be found in the Final Fantasy ROM, as far as I can tell.
 
+> Initially I tried to inject the modifications into nooks and crannies found
+> throughout the `$0E` and `$0F` banks. The routine for performing the total
+> calculation forced my hand, though, since it was reasonably large (well over
+> 40 bytes) and I didn't have a place I could easly put it while keeping the
+> code continguous. Assuming there might be a better spot for all this, I found
+> the void while doing a survey across all the ROM banks.
 
-Curent Bank: 0F
-HOME Address: FEBB
-Bank Switch A: FE1A
+#### Assigned
 
+ CPU     | ROM     | Bytes | Label / Notes
+---------|---------|-------|----------------------------------------------------
+$ACA0    | $01ACB0 | 96    | hackMethodAddressTable
+$AD00    | $01AD10 | 32    | executeHack
+$AD20    | $01AD30 | 16    | cleanupZeroPage
+$AD30    | $01AD40 | 32    | initializePriceQuantity
+$????    | $?????? | ??    | changeQuantity
+$????    | $?????? | ??    | buyItems
 
-## Hacking Notes
+#### Free Space
+
+ CPU     | ROM     | Bytes | Label / Notes
+---------|---------|-------|----------------------------------------------------
+$AD40    | $01AD60 | --    | HEAD
+$BFFF    | $01C00F | --    | TAIL
+
+## Notes
 
 ### Store Item Memory
 $45	Store Index
@@ -87,46 +103,51 @@ Looks like $45 gets copied to $51 for some reason
 
 $83A6	What's here? We just copied 4 bytes at this offset to $300 - $303
 
-So what appears to happen, is the store index is used to grab item id offsets from
-a lookup table somewhere around $83A6. These values are then copied into the
-$300 - $304 memory locations. You can change these to change what a store sells.
+So what appears to happen, is the store index is used to grab item id offsets
+from a lookup table somewhere around $83A6. These values are then copied into
+the $300 - $304 memory locations. You can change these to change what a store
+sells.
 
-So it looks like the code for item stores differs from that of weapon stores and armor
-shops. You can hack the memory to add a weapon into any of the 5 item slots for the
-store, but if you buy a weapon from the item shop it will show up in the items menu.
-Further, if you try to use, say... the Masamune from the items menu the game appears
-to crash.
+So it looks like the code for item stores differs from that of weapon stores and
+armor shops. You can hack the memory to add a weapon into any of the 5 item
+slots for the store, but if you buy a weapon from the item shop it will show up
+in the items menu. Further, if you try to use, say... the Masamune from the
+items menu the game appears to crash.
 
 It does seem to be possible to buy 4 Masamune and equip them no problem however,
 but you must do so from a weapon shop.
 
 ### Store Menu Logic
-When 'a' is pressed on a menu the program does come fairly convoluted logic checking
-bouncing a "modified" value for the controller mask into A via TXA and checking the high
-bit to determine which button was pressed (going through checks for #$10, #$20, #$40,
-and finally #$80).
+When 'a' is pressed on a menu the program does come fairly convoluted logic
+checking bouncing a "modified" value for the controller mask into A via TXA and
+checking the high bit to determine which button was pressed (going through
+checks for #$10, #$20, #$40, and finally #$80).
 
-When it detects that the "a" button has been pressed, it increments $24, then grabs the
-value of $21, EORs it with #$80 and stores it back into $21 (why it does this is quite beyond
-me). At this point it returns from two nested subroutines and then jumps into APU code
-which I believe probably queues up the sound for the button press on the menu.
+When it detects that the "a" button has been pressed, it increments $24, then
+grabs the value of $21, EORs it with #$80 and stores it back into $21 (why it
+does this is quite beyond me). At this point it returns from two nested
+subroutines and then jumps into APU code which I believe probably queues up the
+sound for the button press on the menu.
 
-At this point it breaks back out into the cursor movement code where it checks to see if
-$24 has been incremented. It then, hilariously, clears the carry bit, BCCs to a bit of code
-that zeros out $24, $25, and $22, then RTS the hell out.
+At this point it breaks back out into the cursor movement code where it checks
+to see if $24 has been incremented. It then, hilariously, clears the carry bit,
+BCCs to a bit of code that zeros out $24, $25, and $22, then RTS the hell out.
 
-So the CLC wasn't an accident, it needs to be cleared later at $A484 otherwise there is
-a side effect (it nopes out of further logic and just exits the subroutine). Also, the CLC
-followed by the BCC is actually 2 cycles faster since we need to clear the carry bit anyway
-(at first glance it looks funny, but it now makes a lot of sense).
+So the CLC wasn't an accident, it needs to be cleared later at $A484 otherwise
+there is a side effect (it nopes out of further logic and just exits the
+subroutine). Also, the CLC followed by the BCC is actually 2 cycles faster since
+we need to clear the carry bit anyway (at first glance it looks funny, but it
+now makes a lot of sense).
 
-The program then checks the cursor index ($62) and if it's not zero, it RTS. Otherwise it
-jumps into two subsequent subroutines: $AA5B and then $A8C2. The first routine leads
-to a very convoluted series of jumps and deeper routines eventually leading to a bank
-swap. It's a bit too hard to keep track of things from here.
+The program then checks the cursor index ($62) and if it's not zero, it RTS.
+Otherwise it jumps into two subsequent subroutines: $AA5B and then $A8C2. The
+first routine leads to a very convoluted series of jumps and deeper routines
+eventually leading to a bank swap. It's a bit too hard to keep track of things
+from here.
 
-I tried setting a breakpoint to see when $21 is read next, but it doesn't seem to be read
-at all prior to the transition. It's eventually written over with #$09 and the trail goes cold :(
+I tried setting a breakpoint to see when $21 is read next, but it doesn't seem
+to be read at all prior to the transition. It's eventually written over with
+#$09 and the trail goes cold :(
 
 ### On Item Selection
 
@@ -158,19 +179,19 @@ code seems to make this clear:
 `$030C` is the shop item index for the selected item, so this is how it's being
 copied into place upon selection.
 
-Yeah, this is all starting to make alot more sense. I'm pretty sure
-that $03XX is used as general purpose state for various parts of the game. In this case
-it holds state related to the shop, and what items are being sold. I think with a bit
-more prying I should be able to determine the exact byte layout for each of the items
-being sold. At that point we have all the info we need to make the gold value injection
-routine.
+Yeah, this is all starting to make alot more sense. I'm pretty sure that $03XX
+is used as general purpose state for various parts of the game. In this case it
+holds state related to the shop, and what items are being sold. I think with a
+bit more prying I should be able to determine the exact byte layout for each of
+the items being sold. At that point we have all the info we need to make the
+gold value injection routine.
 
-Also $3E-$3F is holding the lo-byte and hi-byte of an address: $0315 (for cursor index 0)
-upon item selection. My guess is that $0315 is the start of where data for the items are
-being stored.
+Also $3E-$3F is holding the lo-byte and hi-byte of an address: $0315 (for cursor
+index 0) upon item selection. My guess is that $0315 is the start of where data
+for the items are being stored.
 
-The bytes in memory at this point starting at $0315 and assuming a 8-byte record struct
-can be arranged as follows for the 3 items in the first item shop:
+The bytes in memory at this point starting at $0315 and assuming a 8-byte record
+struct can be arranged as follows for the 3 items in the first item shop:
 
 ```
 03 19 00 02 1A 01 FF FF
@@ -189,7 +210,7 @@ item index in the accumulator, will write the PRICE for the item into $10-$11!
 Apparently the price information for these items is on bank 13. HA!
 
 ##### $ECB9 Routine Overview
-1. Set `$12-$13` to an indirect address based on the item index (this is the item price)
+1. Set `$12-$13` to an indirect address based on the item index (item price)
 2. Bank switch to `$0D` (this is where the item price information is)
 3. Copy the values at $BC32-$BC33 to $10-$11 (`$3C` and `$00`, or 60 gold)
 4. Zero-fill $12 (new address is maybe $BC00?, possibly just cleanup?)
@@ -212,8 +233,14 @@ immediately jumps to `$FE1A`. This swaps the PRG-ROM bank to whatever is
 currently in the accumlator (in this case `$0D` or bank 13).
 
 I ran throught he swap to see what bank is fixed, and after it executed it was
-clear that *the lower 16KB PRG-ROM bank is the swappable one*! This was something
-I didn't know yet, so it's rad we figured that out while doing something else.
+clear that *the lower 16KB PRG-ROM bank is the swappable one*! This was
+something didn't know yet, so it's rad we figured that out while doing something
+else.
+
+> In retrospect I realize now that I could have known this relatively early
+> simply by looking to see if the upper bank was 0F or the lower bank was 00. If
+> either of them ever deviated from those numbers it would tell me how the board
+> was handling the fixed vs switchable banking.
 
 The program then proceeds to write the contents of $BC32-$BC33 to $10-$11
 resulting in `$10 = #$3C` and `$11 = #$00`.

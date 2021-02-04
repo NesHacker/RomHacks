@@ -27,7 +27,6 @@ onShopExit
   bne @exit (+3)      ; D0 03
   jmp $A489           ; 4C 89 A4    // Not exiting, continue on...
 @exit:
-  lda #5              ; A9 05
+  lda #0              ; A9 00       // `cleanupZeroPage` is hack index 0
   jsr callHack0E      ; 20 F5 82
   rts                 ; 60
-
