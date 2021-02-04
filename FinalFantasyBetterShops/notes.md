@@ -73,6 +73,8 @@ be found in the Final Fantasy ROM, as far as I can tell.
 
 #### Assigned
 
+##### Head
+
  CPU     | ROM     | Bytes | Label / Notes
 ---------|---------|-------|----------------------------------------------------
 $ACA0    | $01ACB0 | 96    | hackMethodAddressTable
@@ -80,14 +82,15 @@ $AD00    | $01AD10 | 32    | executeHack
 $AD20    | $01AD30 | 16    | cleanupZeroPage
 $AD30    | $01AD40 | 32    | initializePriceQuantity
 $AD50    | $01AD60 | ??    | changeQuantity
+$AD50    | $01AD60 | ??    | HEAD
 $????    | $?????? | ??    | buyItems
 
-#### Free Space
+##### Tail
 
  CPU     | ROM     | Bytes | Label / Notes
 ---------|---------|-------|----------------------------------------------------
-$AD50    | $01AD60 | --    | HEAD
-$BFFF    | $01C00F | --    | TAIL
+$BF90    | $01C00F | --    | TAIL
+$BF90    | $01BFA0 | ??    | buyItems
 
 ## Notes
 

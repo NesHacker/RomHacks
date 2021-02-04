@@ -7,3 +7,6 @@ $AD56#@return#
 $AD68#@increment#
 $AD7A#@apply#
 $AD72#@decrement#
+$BF90#calculateTotal#
+$BFA0#@shift#
+$BFAD#@skip#
