@@ -26,9 +26,9 @@ while shopping.
 Address | Purpose
 --------|-----------------------------------------------------------------------
 $00     | Return Bank
-$01     | Hack Routine Index
-$02     | Hack Routine Address Lo-byte
-$03     | Hack Routine Address Hi-byte
+$01     | Hack Routine Index,           BCD calculation memo (D0-1)
+$02     | Hack Routine Address Lo-byte, BCD calculation memo (D2-3)
+$03     | Hack Routine Address Hi-byte, BCD calculation memo (D4-5)
 $04     | Item Quantity
 $05-$07 | Gold Total (Item Price * Item Quantity)
 $08-$09 | Item Price Memo (for total calculation)
@@ -90,7 +90,8 @@ $????    | $?????? | ??    | buyItems
  CPU     | ROM     | Bytes | Label / Notes
 ---------|---------|-------|----------------------------------------------------
 $BF90    | $01C00F | --    | TAIL
-$BF90    | $01BFA0 | ??    | buyItems
+
+$BF90    | $01BFA0 | ??    | calculateTotal
 
 ## Notes
 

@@ -10,3 +10,9 @@ $AD72#@decrement#
 $BF90#calculateTotal#
 $BFA0#@shift#
 $BFAD#@skip#
+$BFB6#@calculateBCD#
+$BFC0#@loop#
+$BFCE#@highNibble#
+$BFD9#@lowNibble#
+$BFC2#@highNibble#
+$BFCD#@lowNibble#

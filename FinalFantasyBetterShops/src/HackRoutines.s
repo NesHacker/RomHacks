@@ -162,8 +162,7 @@ changeQuantity:
   dec $04           ; C6 04
 @apply:
   jsr $BF90         ; 20 90 BF    // Call `calculateTotal`
-; TODO: Update gold value in display...
-; TODO: Update quantity value in display...
+; TODO: Update the nametable to display gold and quantity
   rts               ; 60
 
 ;
