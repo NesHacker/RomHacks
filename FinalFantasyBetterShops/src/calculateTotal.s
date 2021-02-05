@@ -1,14 +1,14 @@
 ;
 ; calculateTotal
-; Address:  06:BF90
-; Length:   39
+; Address:  06:BF90 (01BFA0)
+; Length:   ??
 ;
 ; Helper method to calculate a new grand total when buying more than one item.
 ; This routine is called by `changeQuantity` and is broken out here to make
 ; that implementation a bit more clear.
 ;
 ; The method also calculates the packed BCD representation of the price and
-; stores the result in $01 through $03 for use in rendering the total amount
+; stores the result in $0A through $0C for use in rendering the total amount
 ; into the nametable.
 ;
 calculateTotal:
@@ -47,35 +47,35 @@ calculateTotal:
   lda $07           ; A5 07
   pha               ; 48
   lda #$00          ; A9 00
-  sta $01           ; 85 01
-  sta $02           ; 85 02
-  sta $03           ; 85 03
+  sta $0A           ; 85 0A
+  sta $0B           ; 85 0B
+  sta $0C           ; 85 0C
   ldy #$18          ; A0 18
 @loop:
   ldx #$03          ; A2 03
 @highNibble:
-  lda $00, x        ; B5 00
+  lda $09, x        ; B5 09
   cmp #$50          ; C9 50
   bcc +5            ; 90 05
   clc               ; 18
   adc #$30          ; 69 30
-  sta $00, x        ; 95 00
+  sta $09, x        ; 95 09
 @lowNibble:
   and #$0f          ; 29 0F
   cmp #$05          ; C9 05
   bcc +7            ; 90 07
   lda #$03          ; A9 03
   clc               ; 18
-  adc $00, x        ; 75 00
-  sta $00, x        ; 95 00
+  adc $09, x        ; 75 09
+  sta $09, x        ; 95 09
   dex               ; CA
   bne @highNibble (-27)  ; D0 E5
   asl $05           ; 06 05
   rol $06           ; 26 06
   rol $07           ; 26 07
-  rol $01           ; 26 01
-  rol $02           ; 26 02
-  rol $03           ; 26 03
+  rol $0A           ; 26 0A
+  rol $0B           ; 26 0B
+  rol $0C           ; 26 0C
   dey               ; 88
   bne @loop (-44)   ; D0 D4
   pla               ; 68

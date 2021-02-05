@@ -63,7 +63,9 @@ hackMethodAddressTable:
   AD
   50                ; Index 2: changeQuantity
   AD
-  XX                ; Index 3: buyItems
+  90                ; Index 3: renderQuantityAndTotal
+  AD
+  XX                ; Index 4: buyItems
   XX
 
 ;
@@ -94,7 +96,7 @@ executeHack:
 ;
 cleanupZeroPage:
   lda #0            ; A9 00
-  ldx #9            ; A2 09
+  ldx #$0C          ; A2 0C
 @loop:
   sta $00, x        ; 95 00
   dex               ; CA
@@ -119,11 +121,12 @@ initializePriceQuantity:
   sta $07           ; 85 07
   lda #1            ; A9 01     // Initialize quantity to 1
   sta $04           ; 85 04
+  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
   rts               ; 60
 
 ;
 ; changeQuantity
-; Address:  0D:AD50
+; Address:  0D:AD50 (01AD60)
 ; Length:   ?
 ;
 ; Handles logic for incrementing and decrementing the selected item quantity
@@ -149,6 +152,11 @@ changeQuantity:
 ; // Are we pressing Right OR Left?
   cmp #%00000001    ; C9 01
   bne @decrement    ; D0 0A
+
+  ; TODO I think the inc/dec need to be pulled out into dedicated subroutines
+  ;      as the logic to determine whether or not we can increase or decrease
+  ;      must also be based on number of items in inventory, how much gold the
+  ;      player has, etc.
 @increment:
   lda $04           ; A5 04
   cmp #99           ; C9 63
@@ -160,9 +168,9 @@ changeQuantity:
   cmp #1            ; C9 01
   beq @return (-34) ; F0 DE
   dec $04           ; C6 04
+
 @apply:
-  jsr $BF90         ; 20 90 BF    // Call `calculateTotal`
-; TODO: Update the nametable to display gold and quantity
+  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
   rts               ; 60
 
 ;

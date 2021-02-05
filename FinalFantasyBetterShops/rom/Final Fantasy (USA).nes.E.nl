@@ -24,3 +24,5 @@ $A492##Note: Carry is set when pressing B on the item select menu.
 $A774##This can only be reached on an input other than up, down,
 \A or B.
 $84E3#onQuantityChange#
+$A733#oamDmaRender#
+$84EB#onVblank#

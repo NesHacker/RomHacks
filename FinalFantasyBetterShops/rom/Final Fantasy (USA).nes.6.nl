@@ -16,3 +16,12 @@ $BFCE#@highNibble#
 $BFD9#@lowNibble#
 $BFC2#@highNibble#
 $BFCD#@lowNibble#
+$AD90#renderQuantityAndTotal#
+$BF50#quantityToBCD#
+$BF59#@loop#
+$BF20#updateShopState#
+$ADC1#@loop#
+$AE02#renderDigits#
+$AE17#@lowNibble#
+$AE2A#@return#
+$AE11#renderDigits#

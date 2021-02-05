@@ -19,19 +19,25 @@ breaking the core game by accidentally overwritting data in the main ROM.
 - **CPU $C000-$FFFF:** 16 KB PRG ROM bank, **FIXED TO LAST BANK** (`$0F`)
 
 ### ZeroPage Temporary Memory
-The zero page addresses from $00 to $09 do not appear to be used when in the
+The zero page addresses from $00 to $0C do not appear to be used when in the
 shopping code. To implement the new functionality, I use them as temporary state
 while shopping.
 
 Address | Purpose
 --------|-----------------------------------------------------------------------
 $00     | Return Bank
-$01     | Hack Routine Index,           BCD calculation memo (D0-1)
-$02     | Hack Routine Address Lo-byte, BCD calculation memo (D2-3)
-$03     | Hack Routine Address Hi-byte, BCD calculation memo (D4-5)
+$01     | Hack Routine Index
+$02     | Hack Routine Address Lo-byte
+$03     | Hack Routine Address Hi-byte
 $04     | Item Quantity
-$05-$07 | Gold Total (Item Price * Item Quantity)
-$08-$09 | Item Price Memo (for total calculation)
+$05     | Gold Total (Byte-0)
+$06     | Gold Total (Byte-1)
+$07     | Gold Total (Byte-2)
+$08     | Item Price Memo (lo-byte), Quantity BCD (d0-d1)
+$09     | Item Price Memo (hi-byte), Re-render Flag (bit 7)
+$0A     | Gold BCD (D0-1)
+$0B     | Gold BCD (D2-3)
+$0C     | Gold BCD (D4-5)
 
 ## Code Injection / Hook Locations
 
@@ -39,7 +45,8 @@ $08-$09 | Item Price Memo (for total calculation)
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
 [ ]   | $0E  | $AD19   | $03AD29 | 22             |
-[x]   | $0E  | $84E3   | $0384F3 | 28             |
+[x]   | $0E  | $84E3   | $0384F3 | 28             | onQuantityChange
+--    | $0E  | $84EB   | $0384FB | --             | onVblank
 [x]   | $0E  | $8469   | $038479 | 22             | onShopExit
 [x]   | $0E  | $82F5   | $038305 | 10             | callHack0E
 
@@ -82,18 +89,25 @@ $AD00    | $01AD10 | 32    | executeHack
 $AD20    | $01AD30 | 16    | cleanupZeroPage
 $AD30    | $01AD40 | 32    | initializePriceQuantity
 $AD50    | $01AD60 | ??    | changeQuantity
-$AD50    | $01AD60 | ??    | HEAD
+$AD90    | $01ADA0 | ??    | renderQuantityAndTotal
 $????    | $?????? | ??    | buyItems
 
 ##### Tail
 
  CPU     | ROM     | Bytes | Label / Notes
 ---------|---------|-------|----------------------------------------------------
-$BF90    | $01C00F | --    | TAIL
-
+$BF00    | $01BF10 | ??    | renderNametable
 $BF90    | $01BFA0 | ??    | calculateTotal
+$BF50    | $01BF60 | ??    | quantityToBCD
+$BF20    | $01BF30 | ??    | updateShopState
 
 ## Notes
+
+### Inventory Item Counts
+Found this out pretty early, the value for each of the items in the inventory is
+stored in the PRG-RAM as a table starting at `$6020 + X` where `$16 <= X < $1C`.
+I think that more item quantities are stored beyond there, but this is the range
+for consumables (which are what we care about for this hack).
 
 ### Store Item Memory
 $45	Store Index
@@ -268,8 +282,15 @@ the lower prg-rom bank set to `$0E` (bank 14).
 Okay, so after doing some experimentation I think I found a variable that is
 correlated to which menu you are on when in an item shop: `$54`:
 
+> Turns out that I was *partially* correct about how `$54` is being used here.
+> In Bank `$0F` there are a bunch of routines that perform drawing for 8-tile
+> wide menus. I found one such routine at `0F:E0A8` (`03E0B8`) that performs
+> clearing for the menus. The routine uses `$54-$55` as a lo-byte/hi-byte pair
+> to determine at which VRAM address it will create a clear menu line in the
+> nametable.
+
 Value | Shop State          | Menu Options
-------|-------------------------------------------------------------------------
+------|---------------------|---------------------------------------------------
 CB    | Shop Action Menu    | Buy / Exit
 26    | Item Selection Menu | Items based on values in $0300 - $0304
 C9    | Confirm Buy Menu    | Yes / No
@@ -282,3 +303,147 @@ As far as a hook is concerned for handling the execution of the inc/dec for the
 quantity, it seems that `$0E:A761` is a pretty good spot to start looking as it
 is executed directly after we've executed the common input handling code in the
 `$0F` bank and prior to handling any other logic for the shop.
+
+
+# Shop Menu Rendering
+
+> I ended up scrapping trying to use the game's actual rendering mechanisms
+> keeping these notes just because I might want to go back down that path again
+> at a later date...
+
+This code gets executed prior to rendering the price of an item in the menu
+renderer (specifically when a PURE is selected):
+
+```
+ 0E:AA41: AA        TAX
+ 0E:AA42: BD 40 AC  LDA $AC40,X @ $AC43 = #$06
+ 0E:AA45: 85 38     STA $38 = #$06
+ 0E:AA47: BD 45 AC  LDA $AC45,X @ $AC48 = #$12
+ 0E:AA4A: 85 39     STA $39 = #$12
+ 0E:AA4C: BD 4A AC  LDA $AC4A,X @ $AC4D = #$09
+ 0E:AA4F: 85 3C     STA $3C = #$09
+ 0E:AA51: BD 4F AC  LDA $AC4F,X @ $AC52 = #$0A
+ 0E:AA54: 85 3D     STA $3D = #$0A
+>0E:AA56: A9 0E     LDA #$0E
+ 0E:AA58: 85 57     STA $57 = #$0E
+ 0E:AA5A: 60        RTS
+```
+A appears to be a parameter which is an offset that looks up data in a table at
+the following offsets in Bank $0E:
+
+- $AC43 + X => $38
+- $AC45 + X => $39
+- $AC4A + X => $3C
+- $AC4F + X => $3D
+
+The routine also loads a constant #$0E (14) into $57. So I wonder what these are
+controlling? Are they addresses and a counter of some sort?
+
+After returning we jump into another routine that does the following:
+
+```
+>0F:E063: A5 38     LDA $38 = #$06
+ 0F:E065: 85 3A     STA $3A = #$02
+ 0F:E067: A5 39     LDA $39 = #$12
+ 0F:E069: 85 3B     STA $3B = #$06
+ 0F:E06B: 20 AB DC  JSR $DCAB
+```
+
+So now we have $3A, $3B, $3C, and $3D all loaded with values from a lookup
+table. This these have to be some sort of control or address varables... And
+there we have it:
+
+```
+>0F:DCAB: A6 3B     LDX $3B = #$12
+ 0F:DCAD: A5 3A     LDA $3A = #$06
+ 0F:DCAF: 29 1F     AND #$1F
+ 0F:DCB1: 1D F4 DC  ORA $DCF4,X @ $DCF7 = #$60
+ 0F:DCB4: 85 54     STA $54 = #$C7
+ 0F:DCB6: BD 14 DD  LDA $DD14,X @ $DD17 = #$20
+ 0F:DCB9: 85 55     STA $55 = #$20
+ 0F:DCBB: 60        RTS -----------------------------------------
+```
+
+- `$3B` is an offset, used to lookup in a table at $0F:DCF4 and $0F:DD14
+- ($3A & #$1F) returns only the lower 5 bits in $3A
+- ($DCF4 + $3B) | ($3A & #$1F) => $54
+- It looks like this is combining the upper bits in a lookup table with the
+  lower 5 bits of the input parameter to produce a VRAM offset and store the
+  result into the VRAM parameter for the nametable rendering function
+- Effectively: where on the screen are we rendering (but convoluted using
+  lookup tables, haha)
+
+Okay, so a nametable is exactly 32 tiles wide (256 / 8 = 32). You only need 5
+bits to store a number from 0 to 31, so that's why we're AND-ing with #$1F here.
+So the value stored in `$38` / `$3A` is basically a "column" offset for where we
+want to render in the nametable. That value get's OR-ed with the "row" value
+that is found in a lookup table with the parameterized offset `$39 / $3B`.
+
+> This routine is a parameterized method for setting the VRAM address variables
+> based on a "Column" (`$38`) and "Row" (`$39`).
+
+Next, we have the following routine:
+
+```
+ 0F:E06E: A5 3C     LDA $3C = #$09
+ 0F:E070: 38        SEC
+ 0F:E071: E9 02     SBC #$02
+ 0F:E073: 85 1A     STA $1A = #$07
+ 0F:E075: A5 3D     LDA $3D = #$0A
+ 0F:E077: 38        SEC
+ 0F:E078: E9 02     SBC #$02
+ 0F:E07A: 85 1B     STA $1B = #$08
+>0F:E07C: 20 FC E0  JSR $E0FC
+```
+
+- $1A = $3C - 2
+- $1B = $3D - 2
+
+Then we move along to what appears to be the rendering routine:
+
+```
+>0F:E0FC: 20 2E E1  JSR $E12E ppuScrollClear
+ 0F:E0FF: AD 02 20  LDA PPU_STATUS = #$00
+ 0F:E102: A5 55     LDA $55 = #$22
+ 0F:E104: 8D 06 20  STA PPU_ADDRESS = #$C7
+ 0F:E107: A5 54     LDA $54 = #$46
+ 0F:E109: 8D 06 20  STA PPU_ADDRESS = #$C7
+ 0F:E10C: A6 1A     LDX $1A = #$07
+ 0F:E10E: A9 F7     LDA #$F7
+ 0F:E110: 8D 07 20  STA PPU_DATA = #$00
+ 0F:E113: A9 F8     LDA #$F8
+ 0F:E115: 8D 07 20  STA PPU_DATA = #$00
+ 0F:E118: CA        DEX
+ 0F:E119: D0 FA     BNE $E115
+ 0F:E11B: A9 F9     LDA #$F9
+ 0F:E11D: 8D 07 20  STA PPU_DATA = #$00
+ 0F:E120: A5 54     LDA $54 = #$46
+ 0F:E122: 18        CLC
+ 0F:E123: 69 20     ADC #$20
+ 0F:E125: 85 54     STA $54 = #$46
+ 0F:E127: A5 55     LDA $55 = #$22
+ 0F:E129: 69 00     ADC #$00
+ 0F:E12B: 85 55     STA $55 = #$22
+ 0F:E12D: 60        RTS -----------------------------------------
+ppuScrollClear:
+; This routine will clear PPU_SCROLL if $37 is non-zero
+ 0F:E12E: A5 37     LDA $37 = #$01
+ 0F:E130: F0 13     BEQ $E145
+ 0F:E132: A5 FF     LDA $FF = #$08
+ 0F:E134: 8D 00 20  STA PPU_CTRL = #$08
+ 0F:E137: A9 00     LDA #$00
+ 0F:E139: 8D 05 20  STA PPU_SCROLL = #$00
+ 0F:E13C: 8D 05 20  STA PPU_SCROLL = #$00
+ 0F:E13F: 20 89 C6  JSR $C689
+ 0F:E142: 20 00 FE  JSR $FE00
+ 0F:E145: 60        RTS -----------------------------------------
+```
+
+
+```
+>0F:C689: A9 0D     LDA #$0D
+ 0F:C68B: 20 03 FE  JSR $FE03 Bank Switch
+ 0F:C68E: 20 00 B0  JSR $B000               ; I Think this is sound code...
+ 0F:C691: A5 57     LDA $57 = #$0E
+ 0F:C693: 4C 03 FE  JMP $FE03 Bank Switch
+```
