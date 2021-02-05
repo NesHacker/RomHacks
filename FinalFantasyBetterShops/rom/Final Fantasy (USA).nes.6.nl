@@ -5,7 +5,7 @@ $AD30#initializePriceQuantity#
 $AD50#changeQuantity#
 $AD56#@return#
 $AD68#@increment#
-$AD7A#@apply#
+$AD7A#@return#
 $AD72#@decrement#
 $BF90#calculateTotal#
 $BFA0#@shift#
@@ -25,3 +25,5 @@ $AE02#renderDigits#
 $AE17#@lowNibble#
 $AE2A#@return#
 $AE11#renderDigits#
+$BED0#incrementQuantity#
+$AD6F#@decrement#

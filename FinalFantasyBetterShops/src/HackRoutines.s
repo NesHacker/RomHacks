@@ -151,25 +151,16 @@ changeQuantity:
   beq @return (-14) ; F0 F2
 ; // Are we pressing Right OR Left?
   cmp #%00000001    ; C9 01
-  bne @decrement    ; D0 0A
-
-  ; TODO I think the inc/dec need to be pulled out into dedicated subroutines
-  ;      as the logic to determine whether or not we can increase or decrease
-  ;      must also be based on number of items in inventory, how much gold the
-  ;      player has, etc.
+  bne @decrement    ; D0 07
 @increment:
-  lda $04           ; A5 04
-  cmp #99           ; C9 63
-  bcs @return (-24) ; B0 E8
-  inc $04           ; E6 04
-  bcc @apply (+8)   ; 90 08
+  jsr $BED0         ; 20 D0 BE  // Call `incrementQuantity`
+  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
+  rts               ; 60
 @decrement:
   lda $04           ; A5 04
   cmp #1            ; C9 01
-  beq @return (-34) ; F0 DE
+  beq +5            ; F0 05
   dec $04           ; C6 04
-
-@apply:
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`
   rts               ; 60
 
