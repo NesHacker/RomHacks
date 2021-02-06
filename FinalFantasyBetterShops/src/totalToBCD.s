@@ -1,6 +1,6 @@
 ;
 ; totalToBCD
-; Address:  06:???? (01????)
+; Address:  06:BE20 (01BE30)
 ;
 ; Converts the current gold total at $05 - $07 to BCD and stores the result in
 ; $0A - $0C.
