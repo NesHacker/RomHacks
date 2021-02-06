@@ -38,6 +38,7 @@ $09     | Item Price Memo (hi-byte), Re-render Flag (bit 7)
 $0A     | Gold BCD (D0-1)
 $0B     | Gold BCD (D2-3)
 $0C     | Gold BCD (D4-5)
+$0D     | Max Quantity for Selected Item
 
 ## Code Injection / Hook Locations
 
@@ -111,6 +112,7 @@ $BF50    | $01BF60 | quantityToBCD
 $BF20    | $01BF30 | updateShopState
 $BEDO    | $01BEE0 | incrementQuantity
 $BE80    | $01BE90 | decrementQuantity
+$BE20    | $01BE30 | totalToBCD
 
 ## Notes
 

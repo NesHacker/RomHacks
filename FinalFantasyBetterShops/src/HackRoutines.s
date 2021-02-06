@@ -96,7 +96,7 @@ executeHack:
 ;
 cleanupZeroPage:
   lda #0            ; A9 00
-  ldx #$0C          ; A2 0C
+  ldx #$0D          ; A2 0D
 @loop:
   sta $00, x        ; 95 00
   dex               ; CA

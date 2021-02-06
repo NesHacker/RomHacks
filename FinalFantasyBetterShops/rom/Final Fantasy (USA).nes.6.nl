@@ -6,11 +6,6 @@ $BF90#calculateTotal#
 $BFA0#@shift#
 $BFAD#@skip#
 $BFB6#@calculateBCD#
-$BFC0#@loop#
-$BFCE#@highNibble#
-$BFD9#@lowNibble#
-$BFC2#@highNibble#
-$BFCD#@lowNibble#
 $AD90#renderQuantityAndTotal#
 $BF50#quantityToBCD#
 $BF59#@loop#
@@ -28,3 +23,7 @@ $AD60#changeQuantity#
 $AD81#@return#
 $AD7E#@update#
 $AD7B#@decrement#
+$BE20#totalToBCD#
+$BE33#@loop#
+$BE35#@highNibble#
+$BE40#@lowNibble#
