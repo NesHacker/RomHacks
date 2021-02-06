@@ -111,21 +111,22 @@ cleanupZeroPage:
 ; Initalizes price, total, and quantity for when a shop item has been selected.
 ;
 initializePriceQuantity:
-  jsr isConsumable  ; 20 80 BF  // Only initialize for consumable items
-  bcs +25           ; B0 19
   lda $10           ; A5 10     // Store the item price and initial total
   sta $030E         ; 8D 0E 03
   sta $05           ; 85 05
   lda $11           ; A5 11
   sta $030F         ; 8D 0F 03
   sta $06           ; 85 06
+  jsr isConsumable  ; 20 80 BF  // Only initialize for consumable items
+  bcc +3            ; 90 03
+  jmp $AD20         ; 4C 20 AD  // Call cleanup zero page and return
+@continue:
   lda #0            ; A9 00
   sta $07           ; 85 07
   jsr $BDA0         ; 20 A0 BD  // Call `calculateBuyMaximum`
   lda #1            ; A9 01     // Initialize quantity to 1
   sta $04           ; 85 04
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`
-@return:
   rts               ; 60
 
 ;
@@ -157,16 +158,3 @@ changeQuantity:
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`
 @return:
   rts               ; 60
-
-A554C9C9D01B2080BFB016A5202903F010C901D00620D0BE4C6EAD2080BE2020BF60
-
-
-;
-; buyItems
-; Address:  0D:????
-; Length:   ?
-;
-; TODO: Implement me.
-;
-buyItems:
-  rts

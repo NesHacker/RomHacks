@@ -26,3 +26,9 @@ $A774##This can only be reached on an input other than up, down,
 $84E3#onQuantityChange#
 $A733#oamDmaRender#
 $84EB#onVblank#
+$A4A5#Not Enough Gold for Purchase#
+$A4EB#Check If Enough Gold#
+$A507#Check If Enough Gold (END)#
+$A4A0#OnBuy (START)#
+$A4B7#Not Enough Inventory Space for Purchase#
+$A4C5#Item Purchase Success#

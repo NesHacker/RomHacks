@@ -17,7 +17,6 @@ $AE2A#@return#
 $AE11#renderDigits#
 $BED0#incrementQuantity#
 $BF80#isConsumable#
-$AD4E#@return#
 $BE80#decrementQuantity#
 $AD60#changeQuantity#
 $AD81#@return#
@@ -36,3 +35,5 @@ $BDE8#@break#
 $BEC3#@return#
 $BE87#@setValue#
 $BEDC#@setValue#
+$AD38#@continue#
+$AD46#@continue#

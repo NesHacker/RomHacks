@@ -81,7 +81,13 @@ be found in the Final Fantasy ROM, as far as I can tell.
 
 #### Indexed Hack Methods (Head)
 The routines at the head of the void are the indexed hack methods that can be
-easily accessed from outside Bank `$06` via the `callHackXX` methods.
+easily accessed from outside Bank `$06` via the `callHackXX` methods. Here's an
+example of how the `cleanupZeroPage` hack method can be called from bank `$0E`:
+
+```
+lda #$00
+jsr callHack0E
+```
 
 Below is a list of the methods and their indices:
 
