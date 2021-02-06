@@ -19,6 +19,8 @@ calculateTotal:
 ; Set the "total" to 0
   lda #0            ; A9 00
   sta $07           ; 85 07
+  sta $06           ; 85 06
+  sta $05           ; 85 05
 ; 16-bits in the item price
   ldx #16           ; A2 10
 @shift:

@@ -32,10 +32,8 @@ calculateBuyMaximum:
   beq +2                  ; F0 02
   bcs +9                  ; B0 09
   lda $04                 ; A5 04
-
   bne +2                  ; D0 02
   lda #1                  ; A9 01
-
   sta $0D                 ; 85 0D
   rts                     ; 60
 
@@ -72,14 +70,14 @@ calculateBuyMaximum:
   ldx $04                 ; A6 04
   inx                     ; E8
   stx $02                 ; 86 02
-  jmp @loop               ; 4C C3 BD
+  jmp @loop               ; 4C C7 BD
 
   ;   else if (total > gold)
   ;     right = max
   beq +7                  ; F0 07
   lda $04                 ; A5 04
   sta $03                 ; 85 03
-  jmp @loop               ; 4C C3 BD
+  jmp @loop               ; 4C C7 BD
 
   ;   else
   ;     break
