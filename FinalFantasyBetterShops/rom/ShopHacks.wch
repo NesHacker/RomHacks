@@ -1,16 +1,21 @@
 
-14
+19
 00000	0020	b	b	0	JoyOneMask
 00001	0045	b	h	0	ShopId
 00002	0054	w	h	0	VramAddressWrite
 00003	0062	b	u	0	MenuCursorIndex
-00004	0300	b	h	0	ShopItemId0
-00005	0301	b	h	0	ShopItemId1
-00006	0302	b	h	0	ShopItemId2
-00007	0303	b	h	0	ShopItemId3
-00008	030C	b	h	0	ShopitemId
+00004	0000	S	S	0	
+00005	0300	b	h	0	ShopItemId0
+00006	0301	b	h	0	ShopItemId1
+00007	0302	b	h	0	ShopItemId2
+00008	0303	b	h	0	ShopItemId3
 00009	0304	b	h	0	ShopItemId4
-0000A	030E	w	u	0	ShopItemPrice
-0000B	601C	w	u	0	Gold (2/3 bytes)
-0000C	6039	b	u	0	Item Quantity: HEAL
-0000D	603A	b	u	0	Item Quantity: PURE
+0000A	0000	S	S	0	
+0000B	030C	b	h	0	ShopitemId
+0000C	030E	w	u	0	ShopItemPrice
+0000D	601C	w	u	0	Gold (2/3 bytes)
+0000E	0000	S	S	0	
+0000F	6039	b	u	0	Item Quantity: HEAL
+00010	603A	b	u	0	Item Quantity: PURE
+00011	6037	b	u	0	Item Quantity: CABIN
+00012	0000	S	S	0	
