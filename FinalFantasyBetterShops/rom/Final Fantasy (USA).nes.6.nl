@@ -34,3 +34,5 @@ $BDBA#@continue#
 $BDC3#@loop#
 $BDE8#@break#
 $BEC3#@return#
+$BE87#@setValue#
+$BEDC#@setValue#
