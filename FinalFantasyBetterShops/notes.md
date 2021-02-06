@@ -18,34 +18,63 @@ breaking the core game by accidentally overwritting data in the main ROM.
 - **CPU $8000-$BFFF:** 16 KB PRG ROM bank, **SWITCHABLE**
 - **CPU $C000-$FFFF:** 16 KB PRG ROM bank, **FIXED TO LAST BANK** (`$0F`)
 
+### RAM Locations
+The following are important RAM locations for the hack:
+
+Address | Size | Label                | Purpose
+--------|------|----------------------|-----------------------------------------
+`$20`   | 1    | `JoyOneMask`         | Bitmask for joypad button states
+`$45`   | 1    | `ShopId`             | Id of the current shop
+`$54`   | 2    | `VramAddressWrite`   | Address for nametable updates
+`$62`   | 1    | `MenuCursorIndex`    | Selected menu option index (general)
+`$0300` | 5    | `ShopItemIds`        | A list of item ids sold in the shop
+`$030C` | 1    | `ShopItemId`         | ID of the currently select shop item
+`$030E` | 2    | `ShopItemPrice`      | 16-bit price for the selected shop item
+`$6020` | *    | `InventoryQtyTable`  | Party inventory quantity lookup offset
+`$601C` | 3    | `Gold`               | Party gold total
+
+### Shop Menu State
+There does not appear to be a direct state varible stored for which menu is
+currently active in a shop. But the high byte of the `VramAddressWrite` variable
+does change in a predictable way based on which menu the player is in.
+
+In particular, the `$54` memory location changes as such with the menus:
+
+Value | Shop State          | Menu Options
+------|---------------------|---------------------------------------------------
+`CB`  | Shop Action Menu    | Buy / Exit
+`26`  | Item Selection Menu | Items based on values in $0300 - $0304
+`C9`  | Confirm Buy Menu    | Yes / No
+
+
 ### ZeroPage Temporary Memory
-The zero page addresses from $00 to $0C do not appear to be used when in the
+The zero page addresses from `$00` to `$0D` do not appear to be used when in the
 shopping code. To implement the new functionality, I use them as temporary state
 while shopping.
 
 Address | Purpose
 --------|-----------------------------------------------------------------------
-$00     | Return Bank
-$01     | Hack Routine Index
-$02     | Hack Routine Address Lo-byte, binary search memo (left)
-$03     | Hack Routine Address Hi-byte, binary search memo (right)
-$04     | Item Quantity
-$05     | Gold Total (Byte-0)
-$06     | Gold Total (Byte-1)
-$07     | Gold Total (Byte-2)
-$08     | Item Price Memo (lo-byte), Quantity BCD (d0-d1)
-$09     | Item Price Memo (hi-byte), Re-render Flag (bit 7)
-$0A     | Gold BCD (D0-1)
-$0B     | Gold BCD (D2-3)
-$0C     | Gold BCD (D4-5)
-$0D     | Max Quantity for Selected Item
+`$00`   | Return Bank
+`$01`   | Hack Routine Index
+`$02`   | Hack Routine Address Lo-byte, binary search memo (left)
+`$03`   | Hack Routine Address Hi-byte, binary search memo (right)
+`$04`   | Item Quantity
+`$05`   | Gold Total (Byte-0)
+`$06`   | Gold Total (Byte-1)
+`$07`   | Gold Total (Byte-2)
+`$08`   | Item Price Memo (lo-byte), Quantity BCD (d0-d1)
+`$09`   | Item Price Memo (hi-byte), Re-render Flag (bit 7)
+`$0A`   | Gold BCD (D0-1)
+`$0B`   | Gold BCD (D2-3)
+`$0C`   | Gold BCD (D4-5)
+`$0D`   | Max Quantity for Selected Item
 
 ## Code Injection / Hook Locations
 
 ### Bank $0E (Shop Logic)
 Used? | BANK | CPU RAM | ROM     | Length (Used)  | Notes
 ------|------|---------|---------|----------------|----------------------
-[ ]   | $0E  | $AD19   | $03AD29 | 22             |
+[x]   | $0E  | $AD19   | $03AD29 | 22             | onBuy
 [x]   | $0E  | $84E3   | $0384F3 | 28             | onQuantityChange
 --    | $0E  | $84EB   | $0384FB | --             | onVblank
 [x]   | $0E  | $8469   | $038479 | 22             | onShopExit
@@ -91,15 +120,15 @@ jsr callHack0E
 
 Below is a list of the methods and their indices:
 
- CPU     | ROM     | Hack Index | Routine
----------|---------|------------|-----------------------------------------------
-$ACA0    | $01ACB0 | --         | hackMethodAddressTable (lookup table)
-$AD00    | $01AD10 | --         | executeHack (master hack executor)
-$AD20    | $01AD30 | 0          | cleanupZeroPage
-$AD30    | $01AD40 | 1          | initializePriceQuantity
-$AD60    | $01AD70 | 2          | changeQuantity
-$AD90    | $01ADA0 | 3          | renderQuantityAndTotal
-$????    | $?????? | 4          | buyItems
+ CPU       | ROM      | Hack Index | Routine
+-----------|----------|------------|--------------------------------------------
+`$ACA0`    | `01ACB0` | --         | hackMethodAddressTable (lookup table)
+`$AD00`    | `01AD10` | --         | executeHack (master hack executor)
+`$AD20`    | `01AD30` | 0          | cleanupZeroPage
+`$AD30`    | `01AD40` | 1          | initializePriceQuantity
+`$AD60`    | `01AD70` | 2          | changeQuantity
+`$AD90`    | `01ADA0` | 3          | renderQuantityAndTotal
+`$AE60`    | `01AE70` | 4          | buyItems
 
 #### Helpers / Subroutines
 At the tail of the void we place various helpers and subroutines. This is mostly
@@ -110,17 +139,17 @@ method).
 
 Below is a table of the routines and their locations:
 
- CPU     | ROM     | Routine
----------|---------|------------------------------------------------------------
-$BF90    | $01BFA0 | calculateTotal
-$BF80    | $01BF90 | isConsumable
-$BF50    | $01BF60 | quantityToBCD
-$BF20    | $01BF30 | updateShopState
-$BED0    | $01BEE0 | incrementQuantity
-$BEB0    | $01BEC0 | cmpTotalToGold
-$BE80    | $01BE90 | decrementQuantity
-$BE20    | $01BE30 | totalToBCD
-$BDA0    | $01BDB0 | calculateBuyMaximum
+ CPU       | ROM      | Routine
+-----------|----------|---------------------------------------------------------
+`$BF90`    | `01BFA0` | `calculateTotal`
+`$BF80`    | `01BF90` | `isConsumable`
+`$BF50`    | `01BF60` | `quantityToBCD`
+`$BF20`    | `01BF30` | `updateShopState`
+`$BED0`    | `01BEE0` | `incrementQuantity`
+`$BEB0`    | `01BEC0` | `cmpTotalToGold`
+`$BE80`    | `01BE90` | `decrementQuantity`
+`$BE20`    | `01BE30` | `totalToBCD`
+`$BDA0`    | `01BDB0` | `calculateBuyMaximum`
 
 ## Notes
 

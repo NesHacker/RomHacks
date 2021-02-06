@@ -30,8 +30,12 @@ calculateBuyMaximum:
   ; }
   jsr cmpTotalToGold      ; 20 B0 BE
   beq +2                  ; F0 02
-  bcs +5                  ; B0 05
+  bcs +9                  ; B0 09
   lda $04                 ; A5 04
+
+  bne +2                  ; D0 02
+  lda #1                  ; A9 01
+
   sta $0D                 ; 85 0D
   rts                     ; 60
 

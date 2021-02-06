@@ -28,12 +28,13 @@ $BE35#@highNibble#
 $BE40#@lowNibble#
 $BEB0#cmpTotalToGold#
 $BDA0#calculateBuyMaximum#
-$BDB5#@return#
-$BDBA#@continue#
-$BDC3#@loop#
-$BDE8#@break#
 $BEC3#@return#
 $BE87#@setValue#
 $BEDC#@setValue#
 $AD38#@continue#
 $AD46#@continue#
+$AE60#buyItems#
+$BDB5#@return#
+$BDBE#@continue#
+$AE75#@itemsOk#
+$AE81#goldOk#
