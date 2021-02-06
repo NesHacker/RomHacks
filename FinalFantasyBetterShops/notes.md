@@ -78,28 +78,39 @@ be found in the Final Fantasy ROM, as far as I can tell.
 > code continguous. Assuming there might be a better spot for all this, I found
 > the void while doing a survey across all the ROM banks.
 
-#### Assigned
+#### Indexed Hack Methods (Head)
+The routines at the head of the void are the indexed hack methods that can be
+easily accessed from outside Bank `$06` via the `callHackXX` methods.
 
-##### Head
+Below is a list of the methods and their indices:
 
- CPU     | ROM     | Bytes | Label / Notes
----------|---------|-------|----------------------------------------------------
-$ACA0    | $01ACB0 | 96    | hackMethodAddressTable
-$AD00    | $01AD10 | 32    | executeHack
-$AD20    | $01AD30 | 16    | cleanupZeroPage
-$AD30    | $01AD40 | 32    | initializePriceQuantity
-$AD50    | $01AD60 | ??    | changeQuantity
-$AD90    | $01ADA0 | ??    | renderQuantityAndTotal
-$????    | $?????? | ??    | buyItems
+ CPU     | ROM     | Hack Index | Routine
+---------|---------|------------|-----------------------------------------------
+$ACA0    | $01ACB0 | --         | hackMethodAddressTable (lookup table)
+$AD00    | $01AD10 | --         | executeHack (master hack executor)
+$AD20    | $01AD30 | 0          | cleanupZeroPage
+$AD30    | $01AD40 | 1          | initializePriceQuantity
+$AD60    | $01AD70 | 2          | changeQuantity
+$AD90    | $01ADA0 | 3          | renderQuantityAndTotal
+$????    | $?????? | 4          | buyItems
 
-##### Tail
+#### Helpers / Subroutines
+At the tail of the void we place various helpers and subroutines. This is mostly
+to make it easier to add functionality to the indexed routines without having to
+rearrange them too often (this is a pain cause we used indirect addressing to
+index them so as to reduce the total number of bytes required to call a hack
+method).
 
- CPU     | ROM     | Bytes | Label / Notes
----------|---------|-------|----------------------------------------------------
-$BF00    | $01BF10 | ??    | renderNametable
-$BF90    | $01BFA0 | ??    | calculateTotal
-$BF50    | $01BF60 | ??    | quantityToBCD
-$BF20    | $01BF30 | ??    | updateShopState
+Below is a table of the routines and their locations:
+
+ CPU     | ROM     | Routine
+---------|---------|------------------------------------------------------------
+$BF90    | $01BFA0 | calculateTotal
+$BF80    | $01BF90 | isConsumable
+$BF50    | $01BF60 | quantityToBCD
+$BF20    | $01BF30 | updateShopState
+$BEDO    | $01BEE0 | incrementQuantity
+$BE80    | $01BE90 | decrementQuantity
 
 ## Notes
 

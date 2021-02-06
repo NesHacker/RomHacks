@@ -1,9 +1,11 @@
 ;
 ; renderQuantityAndTotal.s
-; Address:  06:AD90 ($01ADA0)
+; Address: 06:AD90 (01ADA0)
+; Hackl Index: 3
 ;
 ; Performs nametable rendering to display the current total gold cost plus the
-; selected quantity.
+; selected quantity. This hack is called during vblanks if a re-render flag is
+; set by the other method (e.g. after initialization or when quantity changes).
 ;
 renderQuantityAndTotal:
   lda #$20          ; A9 20

@@ -2,11 +2,6 @@ $ACA0#hackMethodAddressTable#
 $AD00#executeHack#
 $AD20#cleanupZeroPage#
 $AD30#initializePriceQuantity#
-$AD50#changeQuantity#
-$AD56#@return#
-$AD68#@increment#
-$AD7A#@return#
-$AD72#@decrement#
 $BF90#calculateTotal#
 $BFA0#@shift#
 $BFAD#@skip#
@@ -26,4 +21,10 @@ $AE17#@lowNibble#
 $AE2A#@return#
 $AE11#renderDigits#
 $BED0#incrementQuantity#
-$AD6F#@decrement#
+$BF80#isConsumable#
+$AD4E#@return#
+$BE80#decrementQuantity#
+$AD60#changeQuantity#
+$AD81#@return#
+$AD7E#@update#
+$AD7B#@decrement#

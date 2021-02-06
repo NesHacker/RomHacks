@@ -61,7 +61,7 @@ hackMethodAddressTable:
   AD
   30                ; Index 1: initializePriceQuantity
   AD
-  50                ; Index 2: changeQuantity
+  60                ; Index 2: changeQuantity
   AD
   90                ; Index 3: renderQuantityAndTotal
   AD
@@ -88,8 +88,8 @@ executeHack:
 
 ;
 ; cleanupZeroPage
-; Address:  0D:AD20 (01AD30)
-; Length:   10
+; Address: 0D:AD20 (01AD30)
+; Hack Index: 0
 ;
 ; Cleans up the temporary zero page values. This is called upon shop exit at the
 ; moment.
@@ -105,12 +105,14 @@ cleanupZeroPage:
 
 ;
 ; initializePriceQuantity
-; Addrtess:   0D:AD30 (01AD40)
-; Length:     23
+; Addrtess: 0D:AD30 (01AD40)
+; Hack Index: 1
 ;
 ; Initalizes price, total, and quantity for when a shop item has been selected.
 ;
 initializePriceQuantity:
+  jsr isConsumable  ; 20 80 BF  // Only initialize for consumable items
+  bcs +25           ; B0 19
   lda $10           ; A5 10     // Store the item price and initial total
   sta $030E         ; 8D 0E 03
   sta $05           ; 85 05
@@ -122,12 +124,13 @@ initializePriceQuantity:
   lda #1            ; A9 01     // Initialize quantity to 1
   sta $04           ; 85 04
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`
+@return:
   rts               ; 60
 
 ;
 ; changeQuantity
-; Address:  0D:AD50 (01AD60)
-; Length:   ?
+; Address: 0D:AD60 (01AD70)
+; Hack Index: 2
 ;
 ; Handles logic for incrementing and decrementing the selected item quantity
 ; based on user input. This function also handles bounds checking and only
@@ -135,34 +138,27 @@ initializePriceQuantity:
 ; apply changes if the currently selected item is a consumable.
 ;
 changeQuantity:
-; // Are we in correct shop menu?
   lda $54           ; A5 54
   cmp #$C9          ; C9 C9
-  beq +1            ; F0 01
-@return:
-  rts               ; 60
-; // Are we attempting to buy a consumable?
-  lda $030C         ; AD 0C 03
-  cmp #$1C          ; C9 1C       // Consumables are ids 16 through 1B
-  bcs @return (-8)  ; B0 F8
-; // Is the player presssing left or right?
+  bne @return       ; D0 1B
+  jsr isConsumable  ; 20 80 BF
+  bcs @return       ; B0 16
   lda $20           ; A5 20
   and #%00000011    ; 29 03
-  beq @return (-14) ; F0 F2
-; // Are we pressing Right OR Left?
+  beq @return       ; F0 10
   cmp #%00000001    ; C9 01
-  bne @decrement    ; D0 07
-@increment:
+  bne @decrement    ; D0 06
   jsr $BED0         ; 20 D0 BE  // Call `incrementQuantity`
-  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
-  rts               ; 60
+  jmp @update       ; 4C 7E AD
 @decrement:
-  lda $04           ; A5 04
-  cmp #1            ; C9 01
-  beq +5            ; F0 05
-  dec $04           ; C6 04
+  jsr $BE80         ; 20 80 BE  // Call 'decrementQuantity'
+@update:
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`
+@return:
   rts               ; 60
+
+A554C9C9D01B2080BFB016A5202903F010C901D00620D0BE4C6EAD2080BE2020BF60
+
 
 ;
 ; buyItems
