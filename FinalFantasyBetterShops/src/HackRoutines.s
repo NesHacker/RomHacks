@@ -121,6 +121,7 @@ initializePriceQuantity:
   sta $06           ; 85 06
   lda #0            ; A9 00
   sta $07           ; 85 07
+  jsr $BDA0         ; 20 A0 BD  // Call `calculateBuyMaximum`
   lda #1            ; A9 01     // Initialize quantity to 1
   sta $04           ; 85 04
   jsr $BF20         ; 20 20 BF  // Call `updateShopState`

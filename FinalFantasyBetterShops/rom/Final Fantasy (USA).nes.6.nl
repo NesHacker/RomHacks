@@ -27,3 +27,10 @@ $BE20#totalToBCD#
 $BE33#@loop#
 $BE35#@highNibble#
 $BE40#@lowNibble#
+$BEB0#cmpTotalToGold#
+$BDA0#calculateBuyMaximum#
+$BDB5#@return#
+$BDBA#@continue#
+$BDC3#@loop#
+$BDE8#@break#
+$BEC3#@return#

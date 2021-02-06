@@ -1,7 +1,6 @@
 ;
 ; calculateTotal
 ; Address:  06:BF90 (01BFA0)
-; Length:   ??
 ;
 ; Helper method to calculate a new grand total when buying more than one item.
 ; This routine is called by `changeQuantity` and is broken out here to make

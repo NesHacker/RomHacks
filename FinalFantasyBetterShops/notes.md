@@ -27,8 +27,8 @@ Address | Purpose
 --------|-----------------------------------------------------------------------
 $00     | Return Bank
 $01     | Hack Routine Index
-$02     | Hack Routine Address Lo-byte
-$03     | Hack Routine Address Hi-byte
+$02     | Hack Routine Address Lo-byte, binary search memo (left)
+$03     | Hack Routine Address Hi-byte, binary search memo (right)
 $04     | Item Quantity
 $05     | Gold Total (Byte-0)
 $06     | Gold Total (Byte-1)
@@ -110,9 +110,11 @@ $BF90    | $01BFA0 | calculateTotal
 $BF80    | $01BF90 | isConsumable
 $BF50    | $01BF60 | quantityToBCD
 $BF20    | $01BF30 | updateShopState
-$BEDO    | $01BEE0 | incrementQuantity
+$BED0    | $01BEE0 | incrementQuantity
+$BEB0    | $01BEC0 | cmpTotalToGold
 $BE80    | $01BE90 | decrementQuantity
 $BE20    | $01BE30 | totalToBCD
+$BDA0    | $01BDB0 | calculateBuyMaximum
 
 ## Notes
 
