@@ -5,9 +5,12 @@
 ; For the selected consumable item in a shop, this helper determines a maximum
 ; for how many can be bought. It limits the maximum based on available inventory
 ; space and party gold. If the player cannot fit another item or does not have
-; enough gold to buy the item then this sets the maximum to 1.
+; enough gold to buy the item then this sets the maximum to 1. The result of
+; the routine is stored at `$0D`.
 ;
-; The result of this routine is stored at `$0D`.
+; I wrote the algorithm to do this in JavaScript first and hand compiled it here
+; for fun. The original code I wrote is in `calculateBuyMaximum.js` and
+; sprinkled throughout the implementation below in the form of comments.
 ;
 calculateBuyMaximum:
   ; // Determine based on inventory count
