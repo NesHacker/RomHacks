@@ -11,7 +11,10 @@
 ; - $A4A5 if the player does not have enough gold for the items
 ; - $A4E8 is set on success
 ;
+.org $AE60
 buyItems:
+  cmpTotalToGold = $BEB0
+
   lda #$A4                ; A9 A4
   sta $03                 ; 85 03
 
@@ -20,7 +23,7 @@ buyItems:
   lda $6020, x            ; BD 20 60
   adc $04                 ; 65 04
   cmp #$64                ; C9 64
-  bcc +5                  ; 90 05
+  bcc @itemsOk            ; 90 05
   lda #$B7                ; A9 B7
   sta $02                 ; 85 02
   rts                     ; 60

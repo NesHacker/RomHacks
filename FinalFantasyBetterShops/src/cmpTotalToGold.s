@@ -5,6 +5,7 @@
 ; Compares the item price total to the party's current gold. Sets the carry flag
 ; if the total >= gold, and sets the zero flag if total == gold.
 ;
+.org $BEB0
 cmpTotalToGold:
   lda $07         ; A5 07
   cmp $601E       ; CD 1E 60

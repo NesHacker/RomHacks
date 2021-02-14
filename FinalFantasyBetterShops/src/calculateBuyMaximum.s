@@ -12,72 +12,87 @@
 ; for fun. The original code I wrote is in `calculateBuyMaximum.js` and
 ; sprinkled throughout the implementation below in the form of comments.
 ;
+.org $BDA0
 calculateBuyMaximum:
+  ; External routines
+  calculateTotal = $BF90
+  cmpTotalToGold = $BEB0
+
+  ; Variables
+  left = $02
+  right = $03
+  itemQuantity = $04
+  result = $0D
+  itemId = $030C
+  inventoryTable = $6020
+
   ; // Determine based on inventory count
   ; let max = 99 - inventoryCount
-  lda #$63                ; A9 63
-  ldx $030C               ; AE 0C 03
-  sec                     ; 38
-  sbc $6020, x            ; FD 20 60
-  sta $04                 ; 85 04
+  lda #99
+  ldx itemId
+  sec
+  sbc inventoryTable, x
+  sta itemQuantity
 
   ; let total = price * max
-  jsr calculateTotal      ; 20 90 BF
+  jsr calculateTotal
 
   ; // If they have enough gold, then this is the maximum
   ; if (total <= gold) {
   ;   return max
   ; }
-  jsr cmpTotalToGold      ; 20 B0 BE
-  beq +2                  ; F0 02
-  bcs +9                  ; B0 09
-  lda $04                 ; A5 04
-  bne +2                  ; D0 02
-  lda #1                  ; A9 01
-  sta $0D                 ; 85 0D
-  rts                     ; 60
+  jsr cmpTotalToGold
+  beq *+4
+  bcs @binarySearch
+  lda itemQuantity
+  bne *+4
+  lda #1
+  sta result
+  rts
 
+@binarySearch:
   ; // Use a binary search to find the maximum the party can afford
 
   ; let left = 0
-  lda #$00                ; A9 00
-  sta $02                 ; 85 02
+  lda #0
+  sta left
 
   ; let right = max - 1
-  ldx $04                 ; A6 04
-  dex                     ; CA
-  stx $03                 ; 86 03
+  ldx itemQuantity
+  dex
+  stx right
 
   ; while (left < right) {
 @loop:
-  lda $02                 ; A5 02
-  cmp $03                 ; C5 03
-  bcs @break              ; B0 1F
+  lda left
+  cmp right
+  bcs @break
 
   ;   max = (left + right) >> 1
-  clc                     ; 18
-  adc $03                 ; 65 03
-  lsr                     ; 4A
-  sta $04                 ; 85 04
+  clc
+  adc right
+  lsr
+  sta itemQuantity
 
   ;   total = price * max
-  jsr calculateTotal      ; 20 90 BF
+  jsr calculateTotal
 
   ;   if (total < gold)
   ;     left = max + 1
-  jsr cmpTotalToGold      ; 20 B0 BE
-  bcs +8                  ; B0 08
-  ldx $04                 ; A6 04
-  inx                     ; E8
-  stx $02                 ; 86 02
-  jmp @loop               ; 4C C7 BD
+  jsr cmpTotalToGold
+  bcs @elseif
+  ldx itemQuantity
+  inx
+  stx left
+  jmp @loop
 
   ;   else if (total > gold)
   ;     right = max
-  beq +7                  ; F0 07
-  lda $04                 ; A5 04
-  sta $03                 ; 85 03
-  jmp @loop               ; 4C C7 BD
+@elseif:
+  beq @break
+  lda itemQuantity
+  sta right
+  jmp @loop
 
   ;   else
   ;     break
@@ -85,8 +100,9 @@ calculateBuyMaximum:
 
   ; // Return the maximum
   ; return max > 0 ? max : 1
-  lda $04                 ; A5 04
-  bne +2                  ; D0 02
-  lda #1                  ; A9 01
-  sta $0D                 ; 85 0D
-  rts                     ; 60
+  lda itemQuantity
+  bne @skip
+  lda #1
+@skip:
+  sta result
+  rts

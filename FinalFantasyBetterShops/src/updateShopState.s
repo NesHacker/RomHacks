@@ -5,10 +5,11 @@
 ; Calls a collection of shop state update methods and toggles the rendering
 ; flag for all shop hacks.
 ;
+.org $BF20
 updateShopState:
-  jsr $BF90         ; 20 90 BF    // Call `calculateTotal`
-  jsr $BE20         ; 20 20 BE    // Call `totalToBCD`
-  jsr $BF50         ; 20 50 BF    // Call `quantityToBCD`
-  lda #$80          ; A9 80
-  sta $09           ; 85 09
-  rts               ; 60
+  jsr $BF90         ; Call `calculateTotal`
+  jsr $BE20         ; Call `totalToBCD`
+  jsr $BF50         ; Call `quantityToBCD`
+  lda #$80
+  sta $09
+  rts

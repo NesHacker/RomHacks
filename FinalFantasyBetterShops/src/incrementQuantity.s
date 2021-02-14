@@ -4,14 +4,15 @@
 ;
 ; Handles updates and wrapping when incrementing the item quantity in the store.
 ;
+.org $BED0
 incrementQuantity:
-  ldx $04         ; A6 04
-  inx             ; E8
-  txa             ; 8A
-  cmp $0D         ; C5 0D
-  beq @setValue   ; F0 04
-  bcc @setValue   ; 90 02
-  ldx #1          ; A2 01
+  ldx $04
+  inx
+  txa
+  cmp $0D
+  beq @setValue
+  bcc @setValue
+  ldx #1
 @setValue:
-  stx $04         ; 86 04
-  rts             ; 60
+  stx $04
+  rts

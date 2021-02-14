@@ -11,7 +11,8 @@
 ; 1. Execute cleanupZeroPage
 ; 2. Perform an RTS to return out of the shop routine
 ;
-jmp onShopExit        ; 4C 69 84
+.org $A484
+  jmp onShopExit
 
 ;
 ; onShopExit
@@ -21,12 +22,13 @@ jmp onShopExit        ; 4C 69 84
 ; This routine is called to check if we are exiting the shop and, if so, call
 ; the zeropage cleanup hack method in bank 06.
 ;
-onShopExit
-  bcs @exit (+7)      ; B0 07
-  lda $62             ; A5 62
-  bne @exit (+3)      ; D0 03
-  jmp $A489           ; 4C 89 A4    // Not exiting, continue on...
+onShopExit:
+  callHack0E = $82F5
+  bcs @exit
+  lda $62
+  bne @exit
+  jmp $A489           ; Not exiting, continue on...
 @exit:
-  lda #0              ; A9 00       // `cleanupZeroPage` is hack index 0
-  jsr callHack0E      ; 20 F5 82
-  rts                 ; 60
+  lda #0              ; `cleanupZeroPage` is hack index 0
+  jsr callHack0E
+  rts

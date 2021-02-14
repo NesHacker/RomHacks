@@ -32,11 +32,10 @@
 ;   >>> Entry Hook End <<<
 ; 0E:AAA0: AD 00 03  LDA $0300 = #$19
 ;
-lda #1              ; A9 01       // `initializePriceQuantity` is hack index 1
-jsr callHack0E      ; 20 F5 82
-jmp $AA32           ; 4C 32 AA
-brk                 ; 00          // Zero-fill the rest (can use later...)
-brk                 ; 00
-brk                 ; 00
-brk                 ; 00
-brk                 ; 00
+.org $AA8E
+OnItemSelected:
+  callHack0E = $82F5
+  lda #1              ; `initializePriceQuantity` is hack index 1
+  jsr callHack0E
+  jmp $AA32
+  .byte 0, 0, 0, 0, 0 ; Zero-fill the rest

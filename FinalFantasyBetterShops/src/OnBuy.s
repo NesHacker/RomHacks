@@ -10,26 +10,30 @@
 ; of the possible entrypoints were executed).
 ;
 ; Original Code:
-; 0E:A4A0: 20 EB A4  JSR $A4EB Check If Enough Gold
+; 0E:A4A0: 20 EB A4  JSR $A4EB
 ;
-jmp $AD19           ; 4C 19 AD
+.org $A4A0
+  jmp $AD19
 
 ;
 ; onBuy
 ; Address: 0E:AD19
-; Length: 20
 ;
 ; Calls out to the buying hack method jumps to the indirect address it writes
 ; out. On success we also need to fake a stack frame so that the code executes
 ; as expected and correctly causes post sale transition to occur.
 ;
-lda #4              ; A9 04
-jsr callHack0E      ; 20 F5 82
-lda $02             ; A5 02
-cmp #$E8            ; C9 E8
-bne +6              ; D0 06
-lda #$A4            ; A9 A4
-pha                 ; 48
-lda #$C4            ; A9 C4
-pha                 ; 48
-jmp ($0002)         ; 6C 02 00
+.org $AD19
+OnBuy:
+  callHack0E = $82F5
+  lda #4
+  jsr callHack0E
+  lda $02
+  cmp #$E8
+  bne @skipPush
+  lda #$A4
+  pha
+  lda #$C4
+  pha
+@skipPush:
+  jmp ($0002)

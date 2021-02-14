@@ -15,7 +15,8 @@
 ; Original Code:
 ; 0E:A774: 4C 9D AD  JMP $AD9D
 ;
-jmp $84E3           ; 4C E3 84
+.org $A774
+  jmp $84E3
 
 ;
 ; onQuantityChange
@@ -24,6 +25,9 @@ jmp $84E3           ; 4C E3 84
 ;
 ; Calls out to the change quantity hack method to handle changes if applicable.
 ;
-lda #2              ; A9 02       // `changeQuantity` is hack index 2
-jsr callHack0E      ; 20 F5 82
-jmp $AD9D           ; 4C 9D AD
+.org $84E3
+OnChangeQuantity:
+  callHack0E = $82F5
+  lda #2              ; `changeQuantity` is hack index 2
+  jsr callHack0E
+  jmp $AD9D

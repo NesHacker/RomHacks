@@ -11,7 +11,9 @@
 ; return to bank $0E after execution. For clarity's sake, this method should
 ; only be executed from the $0E bank.
 ;
+.org $82F5
 callHack0E:
+  callHack = $FDF2
   sta $01         ; 85 01
   lda #$0E        ; A9 0E
   sta $00         ; 85 00
@@ -20,30 +22,34 @@ callHack0E:
 ;
 ; callHack
 ; Address: 0F:FDF2 (03FE02)
-; Length: 13 bytes
 ;
 ; This is the master $0F bank function that swaps to bank 6, initiates hack
 ; routine execution, then swaps back to the original bank before returning.
 ; This uses the value at $00 as the "return bank" and zero-fills that byte
 ; prior to exiting.
 ;
+.org $FDF2
 callHack:
-  jsr swapAndJumpToHack   ; 20 82 FF
-  lda $00                 ; A5 00
-  jsr bank_swap           ; 20 1A FE
-  lda #00                 ; A9 00
-  sta $00                 ; 85 00
-  rts                     ; 60
+  bankSwap = $FE1A
+  swapAndJumpToHack = $FF82
+  jsr swapAndJumpToHack
+  lda $00
+  jsr bankSwap
+  lda #0
+  sta $00
+  rts
 
 ;
 ; swapAndJumpToHack
 ; Address: 0F:FF82 (03FF91)
-; Length: 8
 ;
+.org $FF82
 swapAndJumpToHack:
-  lda #$06          ; A9 06
-  jsr bank_swap     ; 20 1A FE
-  jmp executeHack   ; 4C 00 AD
+  bankSwap = $FE1A
+  executeHack = $AD00
+  lda #$06
+  jsr bankSwap
+  jmp executeHack
 
 ;
 ; hackMethod AddressTable
@@ -57,16 +63,11 @@ swapAndJumpToHack:
 ; external API can support up to 48 callable methods.
 ;
 hackMethodAddressTable:
-  20                ; Index 0: cleanupZeroPage
-  AD
-  30                ; Index 1: initializePriceQuantity
-  AD
-  60                ; Index 2: changeQuantity
-  AD
-  90                ; Index 3: renderQuantityAndTotal
-  AD
-  XX                ; Index 4: buyItems
-  XX
+  .byte $20, $AD    ; Index 0: cleanupZeroPage
+  .byte $30, $AD    ; Index 1: initializePriceQuantity
+  .byte $60, $AD    ; Index 2: changeQuantity
+  .byte $90, $AD    ; Index 3: renderQuantityAndTotal
+  .byte $60, $AE    ; Index 4: buyItems
 
 ;
 ; executeHack
@@ -76,6 +77,7 @@ hackMethodAddressTable:
 ; Master hack routine executor. Looks up indirect addresses in the master
 ; address table and jumps directly to them to execute hack methods.
 ;
+.org $AD00
 executeHack:
   asl $01                           ; 06 01
   ldx $01                           ; A6 01
@@ -94,14 +96,15 @@ executeHack:
 ; Cleans up the temporary zero page values. This is called upon shop exit at the
 ; moment.
 ;
+.org $AD20
 cleanupZeroPage:
-  lda #0            ; A9 00
-  ldx #$0D          ; A2 0D
+  lda #0
+  ldx #$0D
 @loop:
-  sta $00, x        ; 95 00
-  dex               ; CA
-  bne @loop (-5)    ; D0 FB
-  rts               ; 60
+  sta $00, x
+  dex
+  bne @loop
+  rts
 
 ;
 ; initializePriceQuantity
@@ -110,24 +113,27 @@ cleanupZeroPage:
 ;
 ; Initalizes price, total, and quantity for when a shop item has been selected.
 ;
+.org $AD30
 initializePriceQuantity:
-  lda $10           ; A5 10     // Store the item price and initial total
-  sta $030E         ; 8D 0E 03
-  sta $05           ; 85 05
-  lda $11           ; A5 11
-  sta $030F         ; 8D 0F 03
-  sta $06           ; 85 06
-  jsr isConsumable  ; 20 80 BF  // Only initialize for consumable items
-  bcc +3            ; 90 03
-  jmp $AD20         ; 4C 20 AD  // Call cleanup zero page and return
+  cleanupZeroPage = $AD20
+  isConsumable = $BF80
+  lda $10           ; Store the item price and initial total
+  sta $030E
+  sta $05
+  lda $11
+  sta $030F
+  sta $06
+  jsr isConsumable
+  bcc @continue
+  jmp cleanupZeroPage
 @continue:
-  lda #0            ; A9 00
-  sta $07           ; 85 07
-  jsr $BDA0         ; 20 A0 BD  // Call `calculateBuyMaximum`
-  lda #1            ; A9 01     // Initialize quantity to 1
-  sta $04           ; 85 04
-  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
-  rts               ; 60
+  lda #0
+  sta $07
+  jsr $BDA0         ; Call `calculateBuyMaximum`
+  lda #1            ; Initialize quantity to 1
+  sta $04
+  jsr $BF20         ; Call `updateShopState`
+  rts
 
 ;
 ; changeQuantity

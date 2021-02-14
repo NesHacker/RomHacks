@@ -4,11 +4,14 @@
 ;
 ; Handles updates and wrapping when decrementing the item quantity in the store.
 ;
+.org $BE80
 decrementQuantity:
-  ldx $04         ; A6 04
-  dex             ; CA
-  bne @setValue   ; D0 02
-  ldx $0D         ; A6 0D
+  itemQuantity = $04
+  maxQuantity = $0D
+  ldx itemQuantity
+  dex
+  bne @setValue
+  ldx maxQuantity
 @setValue:
-  stx $04         ; 86 04
-  rts             ; 60
+  stx itemQuantity
+  rts
