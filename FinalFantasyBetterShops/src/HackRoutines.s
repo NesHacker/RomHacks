@@ -14,10 +14,10 @@
 .org $82F5
 callHack0E:
   callHack = $FDF2
-  sta $01         ; 85 01
-  lda #$0E        ; A9 0E
-  sta $00         ; 85 00
-  jmp callHack    ; 4C F2 FD
+  sta $01
+  lda #$0E
+  sta $00
+  jmp callHack
 
 ;
 ; callHack
@@ -79,88 +79,11 @@ hackMethodAddressTable:
 ;
 .org $AD00
 executeHack:
-  asl $01                           ; 06 01
-  ldx $01                           ; A6 01
-  lda hackMethodAddressTable, x     ; BD A0 AC
-  sta $02                           ; 85 02
-  inx                               ; E8
-  lda hackMethodAddressTable, x     ; BD A0 AC
-  sta $03                           ; 85 03
-  jmp ($0002)                       ; 6C 02 00
-
-;
-; cleanupZeroPage
-; Address: 0D:AD20 (01AD30)
-; Hack Index: 0
-;
-; Cleans up the temporary zero page values. This is called upon shop exit at the
-; moment.
-;
-.org $AD20
-cleanupZeroPage:
-  lda #0
-  ldx #$0D
-@loop:
-  sta $00, x
-  dex
-  bne @loop
-  rts
-
-;
-; initializePriceQuantity
-; Addrtess: 0D:AD30 (01AD40)
-; Hack Index: 1
-;
-; Initalizes price, total, and quantity for when a shop item has been selected.
-;
-.org $AD30
-initializePriceQuantity:
-  cleanupZeroPage = $AD20
-  isConsumable = $BF80
-  lda $10           ; Store the item price and initial total
-  sta $030E
-  sta $05
-  lda $11
-  sta $030F
-  sta $06
-  jsr isConsumable
-  bcc @continue
-  jmp cleanupZeroPage
-@continue:
-  lda #0
-  sta $07
-  jsr $BDA0         ; Call `calculateBuyMaximum`
-  lda #1            ; Initialize quantity to 1
-  sta $04
-  jsr $BF20         ; Call `updateShopState`
-  rts
-
-;
-; changeQuantity
-; Address: 0D:AD60 (01AD70)
-; Hack Index: 2
-;
-; Handles logic for incrementing and decrementing the selected item quantity
-; based on user input. This function also handles bounds checking and only
-; applies changes if in the correct shop menu. Further, this method will only
-; apply changes if the currently selected item is a consumable.
-;
-changeQuantity:
-  lda $54           ; A5 54
-  cmp #$C9          ; C9 C9
-  bne @return       ; D0 1B
-  jsr isConsumable  ; 20 80 BF
-  bcs @return       ; B0 16
-  lda $20           ; A5 20
-  and #%00000011    ; 29 03
-  beq @return       ; F0 10
-  cmp #%00000001    ; C9 01
-  bne @decrement    ; D0 06
-  jsr $BED0         ; 20 D0 BE  // Call `incrementQuantity`
-  jmp @update       ; 4C 7E AD
-@decrement:
-  jsr $BE80         ; 20 80 BE  // Call 'decrementQuantity'
-@update:
-  jsr $BF20         ; 20 20 BF  // Call `updateShopState`
-@return:
-  rts               ; 60
+  asl $01
+  ldx $01
+  lda hackMethodAddressTable, x
+  sta $02
+  inx
+  lda hackMethodAddressTable, x
+  sta $03
+  jmp ($0002)

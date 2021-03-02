@@ -1,7 +1,7 @@
 ;
 ; renderQuantityAndTotal.s
 ; Address: 06:AD90 (01ADA0)
-; Hackl Index: 3
+; Hack Routine Index: 3
 ;
 ; Performs nametable rendering to display the current total gold cost plus the
 ; selected quantity. This hack is called during vblanks if a re-render flag is
@@ -71,6 +71,12 @@ renderQuantityAndTotal:
   lda #$00
   sta $09
   rts
+
+;
+; Attached helper method for rendering compact binary coded decimal digits.
+; Consider breaking this out into a common helper later if we need to do further
+; number rendering in future hacks.
+;
 renderDigits:
   pha
   lsr
