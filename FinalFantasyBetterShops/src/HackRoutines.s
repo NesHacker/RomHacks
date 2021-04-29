@@ -62,6 +62,7 @@ swapAndJumpToHack:
 ; The table has been allocated 96 bytes at the head of the great void, so our
 ; external API can support up to 48 callable methods.
 ;
+.org $ACA0
 hackMethodAddressTable:
   .byte $20, $AD    ; Index 0: cleanupZeroPage
   .byte $30, $AD    ; Index 1: initializePriceQuantity
@@ -79,6 +80,7 @@ hackMethodAddressTable:
 ;
 .org $AD00
 executeHack:
+  hackMethodAddressTable = $ACA0
   asl $01
   ldx $01
   lda hackMethodAddressTable, x
