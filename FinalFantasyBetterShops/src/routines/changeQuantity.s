@@ -10,21 +10,38 @@
 ;
 .org $AD60
 changeQuantity:
+  isConsumable = $BF80
+  decrementQuantity = $BE80
+  incrementQuantity = $BED0
+  updateShopState = $BF20
+
+  ; Return if we're not in the final buy menu
   lda $54
   cmp #$C9
   bne @return
-  jsr isConsumable  ; Call `isConsumable`
+
+  ; Return if we aren't buying an consumable item
+  jsr isConsumable
   bcs @return
   lda $20
+
+  ; Return if the player isn't pressing left or right
   and #%00000011
   beq @return
+
+  ; If the player is pressing left, call `incrementQuantity`
   cmp #%00000001
   bne @decrement
-  jsr $BED0         ; Call `incrementQuantity`
+  jsr incrementQuantity
   jmp @update
+
+  ; Else, call `decrementQuantity`
 @decrement:
-  jsr $BE80         ; Call 'decrementQuantity'
+  jsr decrementQuantity
+
+  ; Update the shop state
 @update:
-  jsr $BF20         ; Call `updateShopState`
+  jsr updateShopState
+
 @return:
   rts

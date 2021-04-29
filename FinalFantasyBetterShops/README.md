@@ -129,7 +129,7 @@ Below is a list of the methods and their indices:
 `$AD90`    | `01ADA0` | 3          | renderQuantityAndTotal
 `$AE60`    | `01AE70` | 4          | buyItems
 
-#### Helpers / Subroutines
+#### Helpers
 At the tail of the void we place various helpers and subroutines. This is mostly
 to make it easier to add functionality to the indexed routines without having to
 rearrange them too often (this is a pain cause we used indirect addressing to
