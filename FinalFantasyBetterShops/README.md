@@ -1,5 +1,8 @@
 # Final Fantasy: Better Shops Hack
 
+- [NesHacker Youtube Pt. 1](https://www.youtube.com/watch?v=HLzEhyvHBos)
+- [NesHacker Youtube Pt. 2](https://www.youtube.com/watch?v=nxIWTIPS6Sc)
+
 ## Overview
 This is a "quality of life" hack to modify the game to make it easier to buy
 multiple consumable items (e.g. HEAL, PURE, etc.) at once when shopping. In this
