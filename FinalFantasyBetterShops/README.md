@@ -9,9 +9,6 @@ multiple consumable items (e.g. HEAL, PURE, etc.) at once when shopping. In this
 repository you can find the 6502 assembly source for the changes and routines I
 wrote for the hack along with supplementary data I used when making the hack.
 
-### Generating a ROM
-TODO: Write me
-
 ### Folders & Files
 
 * `rom/` - FCEUX files for the Final Fantasy (US) ROM I used for the hack. The
