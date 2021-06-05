@@ -55,12 +55,12 @@ executeHack:
   sta $03
   jmp ($0002)
 
-06 01     ASL $01
-A6 01     LDX $01
-BD A0 AC  LDA $ACA0, X
-85 02     STA $02
-E8        INX
-BD A0 AC  LDA $ACA0, X
-85 03     STA $03
-6C 02 00  JMP ($0002)
+06:AD00: 06 01     ASL $01
+06:AD02: A6 01     LDX $01
+06:AD04: BD A0 AC  LDA $ACA0, X
+06:AD07: 85 02     STA $02
+06:AD09: E8        INX
+06:AD0A: BD A0 AC  LDA $ACA0, X
+06:AD0D: 85 03     STA $03
+06:AD0F: 6C 02 00  JMP ($0002)
 
